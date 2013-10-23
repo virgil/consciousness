@@ -17,9 +17,6 @@
 //	#define ASSERT(exp) //defined as nothing
 //#endif
 
-extern const bool FLAG__CACHE_M1_GIVEN_ENV;
-extern const bool FLAG__CORRELATION_CASCADE_FORCE_POSITIVE_WHOLE;
-extern const bool FLAG__MMI_IS_INTERACTION_INFORMATION;
 extern const unsigned int MAXIMUM_NUMBER_OF_MIPS_TO_STORE;
 extern const unsigned int MAXIMUM_NUMBER_OF_MAIN_COMPLEXES_TO_STORE;
 
@@ -238,79 +235,6 @@ vector<int> t_consciousness::states_to_attempt__WIRES( unsigned int node_index, 
 		assert( num_wirestates == 0 );
 	
 	return z;
-}
-
-
-t_ei_result t_consciousness::highest_bracket_ei()
-// this functions returns the subsets with the highest bracket_ei
-{
-	double highest_ei=-1.0;
-	t_ei_result z;
-	
-	//we start from the FULL_MASK because we can often skip steps that way
-	for( unsigned int subset=this->FULL_MASK; subset>=1; subset-- )
-	{
-		//		cout << "Starting subset=" << subset << endl;
-		//OPTIMIZATION: only attempt all partitions to find the MIPs if it's possible
-		//for this subset to have higher or equal PHI to the current highestphi
-		double this_ei = this->bracket_ei(subset);
-		
-		if( this_ei > highest_ei ) {
-			z.subsets.clear();
-			z.ei = this_ei;
-			z.subsets.push_back(subset);
-		}
-		else if( this_ei == highest_ei ) {
-			z.subsets.push_back(subset);
-			
-			// break if we have the maximum number of main complexes
-			if( z.subsets.size() >= MAXIMUM_NUMBER_OF_MAIN_COMPLEXES_TO_STORE )
-				break;
-		}
-		//		cout << "\tsubset=" << subset << "\t ei=" << result.ei << "\t phi=" << result.min_phi << endl;
-		
-		
-	}
-	
-	return z;	
-}
-
-
-
-t_ei_result t_consciousness::highest_ei( int x1 )
-// this functions returns the subsets with the highest bracket_ei
-{
-	t_ei_result z;
-	z.x1 = x1;
-	z.ei = -1.0;
-	
-	
-	for( unsigned int subset=1; subset<=this->FULL_MASK; subset++ )
-	{
-		//		cout << "Starting subset=" << subset << endl;
-		//OPTIMIZATION: only attempt all partitions to find the MIPs if it's possible
-		//for this subset to have higher or equal PHI to the current highestphi
-		double this_ei = this->ei(x1, subset);
-		
-		if( this_ei > z.ei ) {
-			z.subsets.clear();
-			z.ei = this_ei;
-			z.subsets.push_back(subset);
-		}
-		else if( this_ei == z.ei ) {
-			z.subsets.push_back(subset);
-			
-			// stop if we have the maximum number of main complexes
-			if( z.subsets.size() >= MAXIMUM_NUMBER_OF_MAIN_COMPLEXES_TO_STORE )
-				break;
-		}
-		//		cout << "\tsubset=" << subset << "\t ei=" << result.ei << "\t phi=" << result.min_phi << endl;
-		
-		
-	}
-	
-	
-	return z;	
 }
 
 

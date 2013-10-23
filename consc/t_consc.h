@@ -164,14 +164,6 @@ public:
 
 
 
-// the unit of output of highest_bracket_ei and highest_perstate_ei
-struct t_ei_result {
-    double ei;              // the raw effective information ei(x1) or bracket_ei()
-    vector< unsigned int > subsets;
-    int x1;             // the x1 state, if it's defined. Default=-1;
-    t_ei_result(): ei(DBL_NONE), x1(INT_NONE) {}
-};
-
 class t_consciousness{
 public:
     
@@ -368,7 +360,6 @@ public:
     vector<t_partition> bracket_MIPs( unsigned int subset, bool debug = false );
     vector<t_partition> bracket_MIPs( const t_subset& restrict S, bool debug = false );
 
-//    double ei( const unsigned int x1, const vector<vector< int > >& parts, unsigned int subset);
     double ei( const unsigned int s1, const t_partition&, const string force_version="UNITS" );      // calculates ei(x1/P) and ei(s1/P)  
     double ei( const unsigned int s1, const bitmask subset );   // calculates ei(s1)
     vector< t_partition > MIPs( int, unsigned int subset );
@@ -381,7 +372,6 @@ public:
     unsigned int num_s1_states( const bitmask S );
     unsigned int num_s1_states( const t_subset S );
     
-    double normalization( const vector< vector< int > >& restrict partition );
     double normalization( const t_partition& restrict P );
 
     inline unsigned int size_of_smallest_part( const t_partition& restrict P );
@@ -406,8 +396,6 @@ public:
     
     vector< t_phi_result > highest_bracketphis();
     vector< t_phi_result > highest_phis( const unsigned int x1 );
-    t_ei_result highest_bracket_ei();
-    t_ei_result highest_ei( int x1 );
 
     long double normalized_ei( const bitmask x1, const t_partition& restrict P );
     long double bracket_normalized_ei( const t_partition& restrict P );
@@ -513,11 +501,7 @@ private:
                                              const unsigned int* restrict MUDESTnodes, const unsigned int partsize,
                                              const unsigned int MUINmask, const unsigned int Xstate );
     
-    // entropy of a partition at X0
-    double H_M0_normalized( const t_partition& restrict P );
     
-    // entropy of a partition at X1
-    double H_M1_normalized( const t_partition& restrict P, bool environment=true );
     double H_M0_GIVEN_M1( const unsigned int M );
     double H_M1_GIVEN_M0( const unsigned int partmask );
     double H_M0_GIVEN_S1( const unsigned int M0, const unsigned int S1 );
@@ -526,7 +510,6 @@ private:
     double H_M0_GIVEN_M1__WIRES( unsigned int part_mask );
     
     double H_S0_GIVEN_M1( const unsigned int S0mask, const unsigned int M1mask );
-    double I_A0_B1_GIVEN_ENV( const unsigned int A0, const unsigned int B1 );
 
     // subsets
     inline unsigned int numunits_in_subset( const unsigned int, bool allow_zero = false );
