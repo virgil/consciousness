@@ -386,12 +386,8 @@ public:
     
     
     //misc
-    // void MAPREDUCE_WORKER_MIPs( unsigned int, unsigned int, string );
     int save_to_file(string ofilename, bool perstate, bool bracketphi, bool highestbracketphi, bool bracketMCs, bool higheststatephi, bool highestbracketei, bool higheststateei );
 
-    double H_S0_given_S1( bitmask subset );
-    double H_S0_given_S1( const t_subset& restrict S );
-    
     string subset2str( const unsigned int subset );
     
     vector< t_phi_result > highest_bracketphis();
@@ -412,7 +408,7 @@ public:
     double H_M0( const t_subset& restrict S );
     double H_M0( const unsigned int S );    
     double H_M1( const unsigned int S );    
-    double H_M1_GIVEN_S0( const unsigned int M, const unsigned int S );
+
     
     double I_A0_B1( const unsigned int A0, const unsigned int B1 ); 
 	double H_A0_B1( const unsigned int A0, const unsigned int B1 );
@@ -458,8 +454,6 @@ private:
 	bool is_valid_mu1( const t_state& restrict mu1 );
 	bool is_valid_mu0( const t_state& restrict mu0 );
 	
-    double entropy_of_part__WIRES( const bitmask part_mask );
-
     vector< t_phi_result > superset_until_top_out( vector<t_subset> starts );
 
     ////////////////////////////////////////////////////////////
@@ -497,19 +491,19 @@ private:
     inline void Xstate2MUstate( const unsigned int* restrict part, const unsigned int partsize, 
 							   const unsigned int Xstate0, unsigned int& MUstate0, unsigned int Xstate1, unsigned int& MUstate1 );
 	
-    inline unsigned int Xstate2MUstate_exchg( const unsigned int* restrict XOUTnodes, 
-                                             const unsigned int* restrict MUDESTnodes, const unsigned int partsize,
-                                             const unsigned int MUINmask, const unsigned int Xstate );
-    
-    
-    double H_M0_GIVEN_M1( const unsigned int M );
-    double H_M1_GIVEN_M0( const unsigned int partmask );
+
+
     double H_M0_GIVEN_S1( const unsigned int M0, const unsigned int S1 );
+    double H_M0_GIVEN_M1( const unsigned int M );
+
     
     double H_M0_GIVEN_M1__ELEMENTS( unsigned int part_mask );
     double H_M0_GIVEN_M1__WIRES( unsigned int part_mask );
+
     
-    double H_S0_GIVEN_M1( const unsigned int S0mask, const unsigned int M1mask );
+    double H_M1_GIVEN_S0( const unsigned int M, const unsigned int S );
+    double H_M1_GIVEN_M0( const unsigned int partmask );
+
 
     // subsets
     inline unsigned int numunits_in_subset( const unsigned int, bool allow_zero = false );

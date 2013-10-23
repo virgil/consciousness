@@ -234,15 +234,6 @@ double t_consciousness::H_M0( const unsigned int S )
 }
 
 
-double t_consciousness::H_S0_GIVEN_M1( const unsigned int S0mask, const unsigned int M1mask )
-// returns H[S0|M1] via some algebra
-// H[S0|M1] = H(S0) + H(M1|S0) - H(M1)
-{
-	return H_A0_B1( S0mask, M1mask ) - H_M1( M1mask );
-	
-//	return H_M0(S0mask) + H_M1_GIVEN_S0(M1mask, S0mask) - H_M1(M1mask);
-}
-
 double t_consciousness::H_M1_GIVEN_M0( const unsigned int partmask )
 // returns H[M1|M0] via some algebra
 // H[M1|M0] = H(M1) + H(M0|M1) - H(M0)
@@ -1135,7 +1126,7 @@ double t_consciousness::H_M1( const unsigned int S )
 
 		if( cur_M1_mask != old_M1_mask ) {
 			Xstate2MUstate( nodes, numnodes, cur_M1_mask, temp_mu1 );
-//			temp_mu1 = Xstate2MUstate_exchg( XOUTnodes, MUDESTnodes, XOUTsize, MUINmask, cur_M1_mask );
+
 			old_M1_mask = cur_M1_mask;
 		}
 		//printf("%i	%i\n",temp_mu0,temp_mu1);
@@ -2828,7 +2819,7 @@ double t_consciousness::bracket_ei( unsigned int subset )
 		//			cout << "H[X1]=" << this->H_X1 << endl;
 		//		}
 		
-		assert( fequals( H_X0_GIVEN_X1, H_S0_given_S1(subset) ) );
+		assert( fequals( H_X0_GIVEN_X1, H_M0_GIVEN_M1(subset) ) );
 		
 		z = this->H_X1;
 	}
@@ -3465,25 +3456,6 @@ void t_consciousness::show_rules(void)
 }
 
 
-inline unsigned int t_consciousness::Xstate2MUstate_exchg( const unsigned int* restrict XOUTnodes, const unsigned int* restrict MUDESTnodes, const unsigned int partsize, const unsigned int MUINmask, const unsigned int Xstate )
-// converts an Xstate to a MUstate
-// Has the requirement that Xstate0 and Xstate1 be PARTIAL BIT-MASKS ONLY CONTAINING 1-bits that are part of part.
-// ex: Xstate0 &= partmask;
-{
-	//idea, get rid of the &1 by zeroing all of the bits not in the mask and then going in the mask from greatest -> least order?
-	
-	// For the Xvals with indices INSIDE of MU, just pass them along.
-	unsigned int MUstate = Xstate & MUINmask;
-	
-	// For Xvals outside MU, get their value and shift by a MUDEST val.
-	for( int i=0; i<partsize; i++ )
-		MUstate |= ((Xstate >> XOUTnodes[i])&1) << MUDESTnodes[i];
-	
-	
-	return MUstate;
-}
-
-
 
 inline void t_consciousness::Xstate2MUstate( const unsigned int* restrict part, const unsigned int partsize, const unsigned int Xstate0, unsigned int& MUstate0 )
 // converts an Xstate to a MUstate
@@ -4088,24 +4060,6 @@ double t_consciousness::entropy_of_part_given_x1( const unsigned int s1, const b
 	
 	return z;
 }
-
-double t_consciousness::H_S0_given_S1( unsigned int subset )
-// Returns H[S0|S1] by calculating H[M_0|M_1]
-{
-	double z = H_M0_GIVEN_M1( subset );
-	
-	if( z < 0.0 ) {
-		assert( 0.0 <= myceil(z) );
-		z = 0.0;
-	}
-	
-	assert( z >= 0.0 );
-	
-	return z;	
-}
-
-// alias to the unsigned int version
-double t_consciousness::H_S0_given_S1( const t_subset& restrict S ) { return H_S0_given_S1( S.S ); }
 
 
 double t_consciousness::H_S0_given_S1_equals_s1( const unsigned int x1, const bitmask subset )
