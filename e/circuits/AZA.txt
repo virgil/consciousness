@@ -1,0 +1,7 @@
+# AND-ZERO-AND
+
+type=circuit
+0	=	1	A	2
+1	=	1	X	1
+2	=	0	A	1
+

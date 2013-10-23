@@ -1,0 +1,9 @@
+type=transition
+nodes=2
+comment=XOR-XOR
+
+00 -> 00
+01 -> 11
+10 -> 11
+11 -> 00
+

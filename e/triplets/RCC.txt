@@ -1,0 +1,7 @@
+# a triplet of 0<-0, 1<-0, and 2<-1
+
+type=circuit
+0	=	0	E	0
+1	=	0	E	0
+2	=	1	E	1
+

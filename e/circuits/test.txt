@@ -1,0 +1,7 @@
+# This is a random circuit that isn't very interesting but for comparison purposes
+
+type=circuit
+0	=	0	A	2
+1	=	1	A	2
+2	=	1	A	3
+3	=	0	A	2

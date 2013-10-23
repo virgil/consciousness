@@ -1,0 +1,14 @@
+# A<->B<->C.  A<->C.  No self-cxns.
+type=transition
+nodes=3
+comment=equals1-equals1-equals1
+
+000 -> 000
+001 -> 110
+010 -> 101
+011 -> 011
+100 -> 011
+101 -> 101
+110 -> 110
+111 -> 000
+

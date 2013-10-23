@@ -1,0 +1,13 @@
+type=transition
+nodes=3
+comment=triplet of parity gates
+
+000 -> 000
+001 -> 111
+010 -> 111
+011 -> 000
+100 -> 111
+101 -> 000
+110 -> 000
+111 -> 111
+

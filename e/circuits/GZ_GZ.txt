@@ -1,0 +1,7 @@
+# GET-ZERO (0-2) and GET-ZERO (1-3)
+type=circuit
+0	=	2	E	2
+1	=	3	E	3
+2	=	2	X	2
+3	=	3	X	3
+

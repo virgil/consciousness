@@ -1,0 +1,7 @@
+# GET-GET-GET-ZERO.  A long chain of GETs that doesn't loop around
+type=circuit
+0	=	1	E	1
+1	=	2	E	2
+2	=	3	E	3
+3	=	3	X	3
+

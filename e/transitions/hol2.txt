@@ -1,0 +1,9 @@
+type=transition
+nodes=2
+comment=max-holism
+
+00 -> 01
+01 -> 11
+10 -> 10
+11 -> 01
+

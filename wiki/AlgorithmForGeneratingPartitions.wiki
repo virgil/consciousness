@@ -1,0 +1,16 @@
+#summary The page contains a hyperefficient algorithm for generating the partitions of a set of n elements.
+#labels partitions,bellnumber,bellnumber,algorithm
+
+= Introduction =
+
+As-is, this code iteratively generates all partitions for a set of up to n elements for n<=15.  If you want to go higher than 15 elements you can replace `unsigned int` with `unsigned long` and most things will _just work_.  Note that if you're going higher than 15 elements the number of partitions is greater the maximum size of an unsigned int.
+
+One could hypothetically make this implementation even faster by creating a separate class for each value of n and #define the network_size
+
+= Details =
+The files you need are:
+ * http://code.google.com/p/consciousness/source/browse/consc/PartitionEnumerator.h
+ * http://code.google.com/p/consciousness/source/browse/consc/PartitionEnumerator.cpp
+
+
+Enjoy.

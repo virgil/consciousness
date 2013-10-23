@@ -1,0 +1,9 @@
+type=transition
+nodes=2
+comment=AND-RETAIN
+
+00 -> 00
+01 -> 01
+10 -> 00
+11 -> 11
+

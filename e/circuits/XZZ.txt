@@ -1,0 +1,7 @@
+# XOR-ZERO-ZERO
+
+type=circuit
+0	=	1	X	2
+1	=	1	X	1
+2	=	2	X	2
+

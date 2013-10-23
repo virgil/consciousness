@@ -1,0 +1,9 @@
+type=transition
+nodes=2
+comment=intersect:2 d1:1 d2:1
+
+00 -> 01
+01 -> 00
+10 -> 00
+11 -> 10
+

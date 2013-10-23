@@ -1,0 +1,12 @@
+# Network for 4 XOR units
+type=neural
+
+fire_only_at_threshold=false
+
+nodes=4
+thresholds=+1.000 +1.000 +1.000 +1.000
+
++0.000 +1.000 +1.000 +0.000
++1.000 +0.000 +0.000 +1.000
++1.000 +0.000 +0.000 +1.000
++0.000 +1.000 +1.000 +0.000

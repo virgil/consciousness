@@ -1,0 +1,13 @@
+type=transition
+nodes=3
+comment=3-node network with maximum integration
+
+000 -> 000
+001 -> 010
+010 -> 110
+011 -> 101
+100 -> 100
+101 -> 111
+110 -> 011
+111 -> 001
+

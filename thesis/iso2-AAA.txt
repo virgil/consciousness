@@ -1,0 +1,5 @@
+type=circuit
+0	=	1	A	2
+1	=	1	A	2
+2	=	1	A	2
+

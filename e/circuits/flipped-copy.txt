@@ -1,0 +1,9 @@
+# This circuit copies itself, but flipped
+
+type=circuit
+0	=	5	E	5
+1	=	4	E	4
+2	=	3	E	3
+3	=	2	E	2
+4	=	1	E	1
+5	=	0	E	0

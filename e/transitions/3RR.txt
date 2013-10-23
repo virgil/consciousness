@@ -1,0 +1,13 @@
+type=transition
+nodes=3
+comment=TriAND-RETAIN-RETAIN
+
+000 -> 000
+001 -> 001
+010 -> 010
+011 -> 011
+100 -> 000
+101 -> 001
+110 -> 010
+111 -> 111
+

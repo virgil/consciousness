@@ -1,0 +1,12 @@
+comment: thetas=1.0
+comment: lambdas=2
+
+type=neural
+fire_only_at_threshold=true
+
+nodes=3
+thresholds=+1.000 +1.000 +1.000
+
++1.000 +1.000 +0.000
++1.000 +0.000 +1.000
++0.000 +1.000 +1.000

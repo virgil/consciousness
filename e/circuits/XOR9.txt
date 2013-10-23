@@ -1,0 +1,13 @@
+# a big XOR gate
+
+type=circuit
+0	=	1	X	5
+1	=	1	X	3
+2	=	0	X	4
+3	=	0	X	1
+4	=	1	X	2
+5	=	3	X	7
+6	=	4	X	7
+7	=	4	X	6
+8	=	1	X	2
+

@@ -1,0 +1,7 @@
+# GET-GET-KEEP
+
+type=circuit
+0	=	1	E	1
+1	=	2	E	2
+2	=	2	E	2
+

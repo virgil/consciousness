@@ -1,0 +1,9 @@
+type=transition
+nodes=2
+comment=RETAIN-XOR
+
+00 -> 00
+01 -> 01
+10 -> 11
+11 -> 10
+

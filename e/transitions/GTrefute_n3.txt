@@ -1,0 +1,13 @@
+type=transition
+nodes=3
+comment=Showing ei(x1/P) exceeding entropy for n3
+
+000 -> 000
+001 -> 000
+010 -> 000
+011 -> 100
+100 -> 000
+101 -> 000
+110 -> 001
+111 -> 101
+

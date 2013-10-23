@@ -1,0 +1,6 @@
+# This circuit has two nodes who exchange their state
+
+type=circuit
+0	=	1	E	1
+1	=	0	E	0
+

@@ -1,0 +1,11 @@
+#summary This page contains documentation and source code for computing _synergistic mutual information_.
+
+= Introduction =
+
+Computing synergistic mutual information often (but not always) requires minimizing a non-convex function.  We present documentation and code detailing best practices for doing this.
+
+
+= Details =
+ * Overview paper introducing synergistic mutual information, http://arxiv.org/abs/1205.4265
+ * Paper detailing synergistic and redundant information for two predictors (coming soon).
+ * [https://code.google.com/p/consciousness/source/browse/simple_system.py Code for computing synergistic mutual information] using the [http://ab-initio.mit.edu/wiki/index.php/NLopt NLopt library].  You'll also need [https://code.google.com/p/consciousness/source/browse/Xjointstate.py Xjointstate.py] and [https://code.google.com/p/consciousness/source/browse/tables.py tables.py].

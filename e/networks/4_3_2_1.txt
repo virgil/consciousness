@@ -1,0 +1,10 @@
+type=neural
+fire_only_at_threshold=true
+nodes=4
+thresholds=4 3 2 1
+
+1.0 1.0 1.0 1.0
+1.0 1.0 1.0 1.0
+1.0 1.0 1.0 1.0
+1.0 1.0 1.0 1.0
+

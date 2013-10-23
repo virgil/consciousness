@@ -1,0 +1,6 @@
+# The triple-AND gate
+type=circuit
+0	=	1	A	2
+1	=	0	A	2
+2	=	0	A	1
+

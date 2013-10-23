@@ -1,0 +1,5 @@
+type=circuit
+0	=	1	X	2
+1	=	2	E	2
+2	=	1	E	1
+
