@@ -246,7 +246,6 @@ public:
     ////////////////////////////////////////////////////////////
 
     // cache of each possible H[M_0|M_1]
-    double* restrict H_M1_GIVEN_ENV_cache;
     double* restrict H_M1_cache;
     double* restrict H_M0_GIVEN_M1_cache;
     
@@ -527,7 +526,6 @@ private:
     double H_M0_GIVEN_M1__WIRES( unsigned int part_mask );
     
     double H_S0_GIVEN_M1( const unsigned int S0mask, const unsigned int M1mask );
-    double H_M1_GIVEN_ENV( const unsigned int M1 );
     double I_A0_B1_GIVEN_ENV( const unsigned int A0, const unsigned int B1 );
 
     // subsets

@@ -42,10 +42,6 @@ using namespace std;
 ////////////////////////////////////////////////////////////////
 const unsigned short OUTPUT_PRECISION = 4;
 
-const string FLAG__PIL_SPECIFIC_INFO = "SURPRISE";
-//const string FLAG__PIL_SPECIFIC_INFO = "SPEC_INFORMATION";
-//const string FLAG__PIL_SPECIFIC_INFO = "STIMULUS";
-
 ////////////////////////////////////////////////////////////////
 //const string FLAG__MIP_METHOD = "ATOMIC";
 const string FLAG__MIP_METHOD = "TONONI";
@@ -59,7 +55,6 @@ const string FLAG__STATE_EI = "UNITS";
 
 #define DO_CAPITALIZED_ASSERTS 1
 
-const bool FLAG__CACHE_M1_GIVEN_ENV=false;
 const bool FLAG__CACHE_M1=true;
 const bool FLAG__CACHE_M0_GIVEN_M1=true;
 
@@ -143,14 +138,12 @@ t_consciousness::t_consciousness()
 	cerr << "- CAPITALIZED ASSERTS ARE ON" << endl;
 #endif
 	
-	if( FLAG__CACHE_M1_GIVEN_ENV==false && FLAG__CACHE_M1==false && FLAG__CACHE_M0_GIVEN_M1==false )
+	if( FLAG__CACHE_M1==false && FLAG__CACHE_M0_GIVEN_M1==false )
 		cerr << "- CACHEs: ** NONE **" << endl;
 	else
 	{
 		cerr << "- CACHEs: ";
 		
-		if( FLAG__CACHE_M1_GIVEN_ENV )
-			cerr << "H[M1|env(M1)]; ";
 		if( FLAG__CACHE_M1 )
 			cerr << "H[M1]; ";
 		if( FLAG__CACHE_M0_GIVEN_M1 )
@@ -181,7 +174,6 @@ t_consciousness::t_consciousness()
 	this->H_X1 = DBL_NONE;	
 	this->H_X0_GIVEN_X1 = DBL_NONE;
 	this->NUM_X1_STATES = DBL_NONE;
-	this->H_M1_GIVEN_ENV_cache = NULL;
 	this->H_M1_cache = NULL;
 	this->H_M0_GIVEN_M1_cache = NULL;
 	this->prob_s1_given_mu0__Vnodes = NULL;
@@ -207,11 +199,6 @@ t_consciousness::~t_consciousness()
 	if( num_x0s_to_this_x1 != NULL ) {
 		free( num_x0s_to_this_x1 );
 		num_x0s_to_this_x1 = NULL;
-	}
-	
-	if( H_M1_GIVEN_ENV_cache != NULL ) {
-		delete [] H_M1_GIVEN_ENV_cache;
-		H_M1_GIVEN_ENV_cache = NULL;
 	}
 	
 	if( H_M1_cache != NULL ) {
@@ -3509,7 +3496,6 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 	assert( this->numunits <= (sizeof(unsigned int)*8) );
 	
 	// initialize the cache(s)
-	assert( H_M1_GIVEN_ENV_cache == NULL );
 	assert( H_M1_cache == NULL );
 	assert( H_M0_GIVEN_M1_cache == NULL );
 	assert( prob_s1_given_mu0__Vnodes == NULL );
@@ -3518,12 +3504,6 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 	prob_s1_given_mu0__Vnodes = new unsigned int[numunits - 1];	
 	
 	
-	if( FLAG__CACHE_M1_GIVEN_ENV ) {
-		H_M1_GIVEN_ENV_cache = new double[numstates];
-		for( int i=0; i<numstates; i++ )
-			H_M1_GIVEN_ENV_cache[i] = DBL_NONE;		
-	}
-
 	if( FLAG__CACHE_M1 ) {
 		H_M1_cache = new double[numstates];
 		for( int i=0; i<numstates; i++ )
