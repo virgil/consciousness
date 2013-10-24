@@ -342,7 +342,7 @@ string PHIs2str( const vector<double> PHIs, double ei )
         }
 		
 		if( i<PHIs.size()-1 )
-			z.append("|");
+			z.append(";");
 	}
 	
 	return z;	

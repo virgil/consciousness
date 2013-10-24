@@ -339,13 +339,13 @@ public:
     /////////////////////////////////////////////////////////////////////////////
     
     // TODO: remove these functions
-    double I_A0_ARROW_B1_IMPOSING_S0( const unsigned int Amask, const unsigned int Bmask, const unsigned int Smask );
-    double I_A0_ARROW_B1_IMPOSING_s0( const unsigned int Amask, const unsigned int Bmask, const unsigned int Smask, const unsigned int s0 );
-    double prob_b1_IMPOSING_a0s0( const unsigned int Bmask, const unsigned int b1, 
-                                  const unsigned int ASmask, const unsigned int a0s0 );
+    double I_A0_ARROW_B1_IMPOSING_S0( const bitmask Amask, const bitmask Bmask, const bitmask Smask );
+    double I_A0_ARROW_B1_IMPOSING_s0( const bitmask Amask, const bitmask Bmask, const bitmask Smask, const unsigned int s0 );
+    double prob_b1_IMPOSING_a0s0( const bitmask Bmask, const unsigned int b1,
+                                  const bitmask ASmask, const unsigned int a0s0 );
     double prob_n1_GIVEN_a0s0( const unsigned int n1, const unsigned int n_index, 
-                               const unsigned int a0s0, const unsigned int ASmask, const unsigned int ASsize );
-    double I_A0_ARROW_B1( const unsigned int Amask, const unsigned int Bmask );
+                               const unsigned int a0s0, const bitmask ASmask, const unsigned int ASsize );
+    double I_A0_ARROW_B1( const bitmask Amask, const bitmask Bmask );
 	
 
     /////////////////////////////////////////////////////////////////////////////
@@ -377,12 +377,8 @@ public:
     inline unsigned int size_of_smallest_part( const t_partition& restrict P );
 
     
-    ////////////////////////////////////////////////////////////
-    // make causality matrices
-    double specific_info__surprise__A0_and_b1( const bitmask Amask, const bitmask Bmask, const unsigned int b1 );
-    double specific_info__specinfo__A0_and_b1( const bitmask Amask, const bitmask Bmask, const unsigned int b1 );
-    
-    ////////////////////////////////////////////////////////////
+    // this one is a little faster than the DKL version.
+    double I_A0_B1_equals_b1__specinfo( const bitmask Amask, const bitmask Bmask, const unsigned int b1 );
     
     
     //misc
@@ -406,16 +402,16 @@ public:
     
     
     double H_M0( const t_subset& restrict S );
-    double H_M0( const unsigned int S );    
-    double H_M1( const unsigned int S );    
+    double H_M0( const bitmask S );
+    double H_M1( const bitmask S );
 
     
-    double I_A0_B1( const unsigned int A0, const unsigned int B1 ); 
-	double H_A0_B1( const unsigned int A0, const unsigned int B1 );
+    double I_A0_B1( const bitmask A0, const bitmask B1 );
+	double H_A0_B1( const bitmask A0, const bitmask B1 );
 	
-    double I_A0_B1_GIVEN_C0( unsigned int A0, unsigned int B1, unsigned int C0 );
-    double I_A0_B1_GIVEN_C1( unsigned int A0, unsigned int B1, unsigned int C1 );	
-    double I_A0_B1_GIVEN_C0_D1( unsigned int A0, unsigned int B1, unsigned int C0, unsigned int D1 );	
+    double I_A0_B1_GIVEN_C0( const bitmask A0, const bitmask B1, const bitmask C0 );
+    double I_A0_B1_GIVEN_C1( const bitmask A0, const bitmask B1, const bitmask C1 );
+    double I_A0_B1_GIVEN_C0_D1( const bitmask A0, const bitmask B1, const bitmask C0, const bitmask D1 );
 	
 	
     double MIP_score( const bitmask x1, const t_partition& restrict P );
@@ -493,16 +489,16 @@ private:
 	
 
 
-    double H_M0_GIVEN_S1( const unsigned int M0, const unsigned int S1 );
-    double H_M0_GIVEN_M1( const unsigned int M );
+    double H_M0_GIVEN_S1( const bitmask M0, const bitmask S1 );
+    double H_M0_GIVEN_M1( const bitmask M );
 
     
-    double H_M0_GIVEN_M1__ELEMENTS( unsigned int part_mask );
-    double H_M0_GIVEN_M1__WIRES( unsigned int part_mask );
+    double H_M0_GIVEN_M1__ELEMENTS( const bitmask part_mask );
+    double H_M0_GIVEN_M1__WIRES( const bitmask part_mask );
 
     
-    double H_M1_GIVEN_S0( const unsigned int M, const unsigned int S );
-    double H_M1_GIVEN_M0( const unsigned int partmask );
+    double H_M1_GIVEN_S0( const bitmask M, const bitmask S );
+    double H_M1_GIVEN_M0( const bitmask partmask );
 
 
     // subsets

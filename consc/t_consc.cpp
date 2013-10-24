@@ -55,7 +55,7 @@ const string FLAG__STATE_EI = "UNITS";
 
 #define DO_CAPITALIZED_ASSERTS 1
 
-const bool FLAG__CACHE_M1=true;
+//const bool FLAG__CACHE_M1=true;
 const bool FLAG__CACHE_M0_GIVEN_M1=true;
 
 
@@ -138,14 +138,12 @@ t_consciousness::t_consciousness()
 	cerr << "- CAPITALIZED ASSERTS ARE ON" << endl;
 #endif
 	
-	if( FLAG__CACHE_M1==false && FLAG__CACHE_M0_GIVEN_M1==false )
+	if( FLAG__CACHE_M0_GIVEN_M1==false )
 		cerr << "- CACHEs: ** NONE **" << endl;
 	else
 	{
 		cerr << "- CACHEs: ";
 		
-		if( FLAG__CACHE_M1 )
-			cerr << "H[M1]; ";
 		if( FLAG__CACHE_M0_GIVEN_M1 )
 			cerr << "H[M0|M1]; ";
 		cerr << "\b\b " << endl;
@@ -252,8 +250,8 @@ t_psi_result t_consciousness::psi( const t_state x1 )
     t_psi_result z;
     z.ei = this->ei( x1 );
     z.x1 = x1;
-//    z.lowerbound = psi_lowerbound( x1 );
-//    z.upperbound = psi_upperbound( x1 );
+    z.lowerbound = psi_lowerbound( x1 );
+    z.upperbound = psi_upperbound( x1 );
     
     if( fequals(z.lowerbound,z.upperbound) )
         z.lowerbound = min(z.lowerbound,z.upperbound);
@@ -263,7 +261,149 @@ t_psi_result t_consciousness::psi( const t_state x1 )
     return z;
 }
 
+double t_consciousness::psi_lowerbound( const t_state& restrict x1state )
+{
+    assert( is_valid_mu1( x1state ) );
+    
+    // as-is, the psi measure is only defined for the whole system.  Not a piece of the system.
+    assert( x1state.size() == this->numunits );
+    
+    // You must use this as the original value.  Otherwise things break.
+    double z = DBL_MAX;
+    
+    // enumerate very possible bipartition
+    for( bitmask Amask = 1; Amask < FULL_MASK; Amask++ )
+    {
+        bitmask Bmask = FULL_MASK ^ Amask;
 
+        // there's no overlap between Amask and Bmask
+        assert( (Amask & Bmask) == 0 );
+
+        // Amask and Bmask pave the entire system.
+        assert( (Amask | Bmask) == FULL_MASK );
+        
+        double summ = 0.0;
+        
+        //foreach x0 state...
+        for( unsigned int x0=0; x0<=FULL_MASK; x0++ )
+        {
+            const unsigned int a0 = x0 & Amask;
+            const unsigned int b0 = x0 & Bmask;
+            
+            t_state x0state(FULL_MASK, x0);
+            t_state a0state(Amask, a0);
+            t_state b0state(Bmask, b0);
+            
+            // top = p(x0|x1)
+            double top = prob_mu0_given_s1( x0state, x1state );
+            
+            if( top == 0.0 )
+                continue;
+            
+            // bottom = p(a0|x1)*p(b0|x1)
+            double bottom = prob_mu0_given_s1(a0state, x1state) * prob_mu0_given_s1(b0state, x1state);
+            
+            summ += top * log2( top / bottom );
+            
+        }
+        z = min(z,summ);
+    }
+
+    
+    // remove any -0.0s
+    if( fequals(z,-0.0) )
+        z = 0.0;
+    
+    assert( 0.0 <= z );
+    
+    return z;
+}
+
+double t_consciousness::psi_upperbound( const t_state& restrict x1state )
+{
+    assert( is_valid_mu1( x1state ) );
+    
+    // as-is, the psi measure is only defined for the whole system.  Not a piece of the system.
+    assert( x1state.size() == this->numunits );
+    
+    // You must use this as the original value.  Otherwise things break.
+    double z = DBL_MAX;
+
+    
+    // Amask is a single bit that shifts to the LEFT at the end of the loop.
+    for( bitmask Amask=1; Amask<=FULL_MASK; Amask <<= 1 )
+    {
+        bitmask Bmask = FULL_MASK ^ Amask;
+        // there's no overlap between Amask and Bmask
+        assert( (Amask & Bmask) == 0 );
+        
+        // Amask and Bmask pave the entire system.
+        assert( (Amask | Bmask) == FULL_MASK );
+        
+        assert( numunits_in_mask(Amask) == 1 );
+        assert( numunits_in_mask(Bmask) == numunits - 1 );
+        
+        
+        double summ = I_A0_B1_equals_b1( FULL_MASK, x1state );
+        summ -= I_A0_B1_equals_b1( Bmask, x1state );
+        
+        z = min(z,summ);
+    }
+
+    
+    
+/*
+    for( unsigned int Aindex=0; Aindex < this->numunits; Aindex++ )
+    {
+        bitmask Amask = 1 << Aindex;
+        bitmask Bmask = FULL_MASK ^ Amask;
+        
+        // there's no overlap between Amask and Bmask
+        assert( (Amask & Bmask) == 0 );
+        
+        // Amask and Bmask pave the entire system.
+        assert( (Amask | Bmask) == FULL_MASK );
+        
+        assert( numunits_in_mask(Amask) == 1 );
+        assert( numunits_in_mask(Bmask) == numunits - 1 );
+        
+        double summ = 0.0;
+
+        //foreach x0 state...
+        for( unsigned int x0=0; x0<=FULL_MASK; x0++ )
+        {
+            const unsigned int a0 = x0 & Amask;
+            const unsigned int b0 = x0 & Bmask;
+
+            const double top_numerator = prob_a0_b1( x0, FULL_MASK, x1.value, x1.mask );
+            const double top_denominator = prob_a0_b1( b0, Bmask, x1.value, x1.mask );
+            
+            if( top_numerator == 0.0 )
+                continue;
+            
+            // top = p(a0|b0,x1) = p(a0,b0,x1) / p(b0,x1)
+            const double top = top_numerator / top_denominator;
+            
+            // bottom = p(a0)
+            t_state a0state(Amask, a0);
+            double bottom = prob_mu0( a0state );
+            
+            summ += top * log2( top / bottom );
+            
+        }
+        z = min(z,summ);
+        
+    }
+*/
+    
+    // remove any -0.0s
+    if( fequals(z,-0.0) )
+        z = 0.0;
+    
+    assert( 0.0 <= z );
+    
+    return z;
+}
 
 
 
@@ -1064,13 +1204,6 @@ double t_consciousness::prob_n1_given_s0__anticond( const unsigned int n1, const
 double t_consciousness::H_M1( const unsigned int S )
 // returns H[M1] for a given subset M
 {
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	// Create the composite mask for caching purposes
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	// if the cache_part_entropies is not NONE, then it's a valid cache
-	if( FLAG__CACHE_M1 && H_M1_cache[S] >= 0.0 )
-		return H_M1_cache[S];
-	////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	unsigned int numnodes = numunits_in_mask(S);
 
@@ -1172,17 +1305,7 @@ double t_consciousness::H_M1( const unsigned int S )
 		z = 0.0;
 	}
 
-	
-	// Store the part entropy in the cache, if we're doing that.
-	if( FLAG__CACHE_M1 ) {
 		
-		// if this is a brand new subset, flush the old cache.
-		ASSERT( this->H_M1_cache[S] != this->H_M1_cache[S] );
-		
-		// set the part entropy
-		this->H_M1_cache[ S ] = z;
-	}
-	
 	// DO NOT DO ANY ROUNDING HERE!	
 	ASSERT( 0.0 <= z );
 	
@@ -3428,13 +3551,6 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 	prob_s1_given_mu0__Vnodes = new unsigned int[numunits - 1];	
 	
 	
-	if( FLAG__CACHE_M1 ) {
-		H_M1_cache = new double[numstates];
-		for( int i=0; i<numstates; i++ )
-			H_M1_cache[i] = DBL_NONE;		
-	}
-	
-
 	if( FLAG__CACHE_M0_GIVEN_M1 ) {
 		H_M0_GIVEN_M1_cache = new double[numstates];
 		for( int i=0; i<numstates; i++ )
@@ -4339,7 +4455,7 @@ int t_consciousness::save_to_file(string ofilename, bool perstate, bool bracketp
 	// Output the perstate and averaged phi, if we're doing that.
 	if( perstate )
 	{
-		double average_phi=0.0, average_ei=0.0, average_IbS=0.0, average_eiweakestlink=0.0;
+		double average_phi=0.0, average_ei=0.0, average_psi_lower=0.0, average_psi_upper=0.0;
 		
 		
 		for( map<unsigned int,unsigned int>::iterator it=this->existing_states.begin(); it != this->existing_states.end(); it++ )
@@ -4347,6 +4463,8 @@ int t_consciousness::save_to_file(string ofilename, bool perstate, bool bracketp
 			unsigned int x1 = (*it).first;
 			double prob_x1 = (*it).second / (double) this->numstates;
 			t_phi_result res = this->phi( x1 );
+            
+
 
 			// for displaying the S.brep();
 			t_subset S(numunits, x1);
@@ -4364,7 +4482,21 @@ int t_consciousness::save_to_file(string ofilename, bool perstate, bool bracketp
 			tempfile << "\tp(x1)=" << prob_x1;
 			
 			tempfile << "\tei=" << res.ei;
+
 			
+            t_state temp_x1state(FULL_MASK,x1);
+            
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Compute the state-dependent psi values
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            double this_psi_lower=psi_lowerbound( temp_x1state ), this_psi_upper=psi_upperbound( temp_x1state );
+            tempfile << setprecision(5) << "\tpsi_lower=" << this_psi_lower << "\tpsi_upper=" << this_psi_upper;
+            
+            average_psi_lower += prob_x1 * this_psi_lower;
+            average_psi_upper += prob_x1 * this_psi_upper;
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            
             if( res.min_phi > res.ei )
                 cerr << "** Warning: state x1=" << S.brep() << " has phi > ei.  This is a known problem in state-dependent ɸ.  ei=" << res.ei << " \t phi=" << res.min_phi << " **" << endl;
             
@@ -4398,6 +4530,9 @@ int t_consciousness::save_to_file(string ofilename, bool perstate, bool bracketp
 		
 		assertmsg( fequals(average_ei,H_X1), "state-averaged ei(x1) != H(X1)" );
 		tempfile << "state-averaged:" << "\tei=" << average_ei << "\tphi=" << average_phi;
+
+        tempfile << setprecision(5) << "\tpsi_lower=" << average_psi_lower << "\tpsi_upper=" << average_psi_upper;
+        
 		tempfile << endl;
 	}
 	
@@ -4412,6 +4547,7 @@ int t_consciousness::save_to_file(string ofilename, bool perstate, bool bracketp
         
         t_partition P = r.MIPs[0];
         
+//        tempfile << "\tpsi_lower=" << bracketpsi_lower() << "\tpsi_upper=" << bracketpsi_upper();
 
 		tempfile << endl;
 		
@@ -4793,9 +4929,10 @@ double t_consciousness::perstate_ei( const unsigned int x1 )
 
 
 
-double t_consciousness::specific_info__specinfo__A0_and_b1( const bitmask Amask, const bitmask Bmask, const unsigned int b1 )
+double t_consciousness::I_A0_B1_equals_b1__specinfo( const bitmask Amask, const bitmask Bmask, const unsigned int b1 )
 // computes the average specific information between part-state b1 and part Amask
 // I( A0 : B1 = b1 ) = H[A0] - H[A0|B1=b1]
+// Note that for the uniform distribution on A0, this is equivalent to the DKL "specific surprise" definition.
 {
 //	assert( FLAG__PIL_SPECIFIC_INFO == "SPEC_INFORMATION" );
 	
