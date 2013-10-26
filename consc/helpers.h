@@ -83,7 +83,6 @@ unsigned int fast_log2( const uint32_t inp );
 // reverse the elements in an array of length 'len'
 void reverse_array(unsigned int* inver_a, const unsigned int len);
 
-LatticeAtoms lattice_nodes_below( const t_partition& restrict P, const bool Ptimestep );
 
 // converts a string of binary characters into an unsigned integer
 unsigned int bin2dec(char* bin);

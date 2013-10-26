@@ -429,12 +429,19 @@ public:
     t_consciousness( void );
     ~t_consciousness( void );
 
-    double prob_s1_given_mu0( const register unsigned int s1, const register bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
-	double prob_s1_given_mu0__slower( const unsigned int s1, const bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
+
+    double prob_m0( const t_state& m0 );
+    
+//    double prob_s1_given_m0( const unsigned int s1, const bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
+//    double prob_s1_given_m0( const register unsigned int s1, const register bitmask Smask, const register unsigned int mu0, const bitmask MUmask );
+
+    double prob_s1_given_m0( const register unsigned int s1, const register bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
+    
+	double prob_s1_given_m0__slower( const unsigned int s1, const bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
 
     double prob_mu0_given_s1( const t_state& mu0, const t_state& s1 );
     double prob_mu0_given_s1( const t_state& mu0, const t_state& s1, const unsigned int MUsize );
-    double prob_mu0( const t_state& mu0 );
+
     
     double prob_mu0_given_s1( const unsigned int mu0, const bitmask MUmask, const unsigned int s1, const bitmask Smask, const unsigned int MUsize );
     
@@ -445,10 +452,10 @@ private:
 
     inline bitmask env( const bitmask incoming_mask, bitmask subset=0 );
     
-	bool is_valid_mu0( const unsigned int mu0, const bitmask MUmask );	
-	bool is_valid_mu1( const unsigned int mu1, const bitmask MUmask );
-	bool is_valid_mu1( const t_state& restrict mu1 );
-	bool is_valid_mu0( const t_state& restrict mu0 );
+	bool is_valid_m0( const unsigned int mu0, const bitmask MUmask );
+	bool is_valid_m1( const unsigned int mu1, const bitmask MUmask );
+	bool is_valid_m1( const t_state& restrict mu1 );
+	bool is_valid_m0( const t_state& restrict mu0 );
 	
     vector< t_phi_result > superset_until_top_out( vector<t_subset> starts );
 
@@ -489,6 +496,10 @@ private:
 	
 
 
+    double prob_s1_given_m0( const t_state& restrict s1, const t_state& restrict m0 );
+    double prob_m0_s1( const t_state& restrict m0, const t_state& restrict s1 );
+    
+    double H_M0_GIVEN_s1( const bitmask Mmask, const t_state& restrict s1 );
     double H_M0_GIVEN_S1( const bitmask M0, const bitmask S1 );
     double H_M0_GIVEN_M1( const bitmask M );
 
