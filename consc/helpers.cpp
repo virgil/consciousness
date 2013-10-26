@@ -16,7 +16,6 @@
 #include <boost/foreach.hpp>
 #include <sstream>
 #include "t_partition.h"
-#include "t_latticeatom.h"
 #include "helpers.h"
 #include <limits>
 
@@ -25,6 +24,7 @@
 	#define foreach BOOST_FOREACH
 #endif
 
+//extern const unsigned int MAXIMUM_NUMBER_OF_MAIN_COMPLEXES_TO_STORE;
 
 
 
@@ -426,5 +426,109 @@ string partitions2str( const vector<t_partition> Ps )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// returns the number of entries in the array
+void subset2array( unsigned int subset, unsigned int* restrict z )
+{
+    
+	unsigned int num_ON=0, power=0;
+	
+	
+	do	{
+		// this only works because we're starting at power=0 and num_ON=0
+		if( subset & 1 ) {
+			z[num_ON] = power;
+			num_ON += 1;
+		}
+		
+		subset >>= 1;
+		power += 1;
+	}while( subset );
+    
+}
+
+
+
+
+
+
+string str_rstrip( string haystack, const string needles )
+{
+	// loop until we don't find a needle at the end
+	while( 1 )
+	{
+		bool found_a_needle = false;
+		
+		for( int i=0; i<needles.length(); i++ ) {
+			char temp_char = needles[i];
+			
+			if( temp_char == haystack[ haystack.length()-1 ] ) {
+				haystack.erase( haystack.length()-1 );
+				found_a_needle = true;
+			}
+			
+		}
+		
+		
+		if( found_a_needle==false )
+			break;
+		
+	}
+	
+	return haystack;
+}
+
+string str_istrip( string haystack, string needle )
+// returns the string haystack with string 'needle' removed from the beginning (if it exists at all)
+{
+	while( str_istartswith( haystack, needle ) ) {
+		haystack.erase( 0, needle.length() );
+	}
+	
+	return haystack;
+}
+
+
+bool str_istartswith( string haystack, string needle )
+// returns TRUE if string haystrack starts with needle
+// else returns FALSE
+{
+	for( int i=0; i<haystack.length(); i++ )
+		haystack[i] = tolower(haystack[i]);
+	
+	for( int i=0; i<needle.length(); i++ )
+		needle[i] = tolower(needle[i]);
+	
+	return str_startswith( haystack, needle );
+}
+
+
+
+unsigned int mask2array( unsigned int inpmask, unsigned int* restrict z )
+{
+	//	unsigned int power = (unsigned int) floor( log2( subset ) );
+	unsigned int power=0, num_ON=0;
+	//	unsigned int temp_S;
+	
+	//	// if outside is TRUE, get the nodes that are OUTSIDE the subset
+	//	if( outside == true )
+	//		temp_S ^= max_S;
+	
+	do	{
+		// this only works because we're starting at power=0 and num_ON=0
+		if( inpmask&1 ) {
+			z[num_ON] = power;
+			num_ON += 1;
+		}
+		
+		inpmask >>= 1;
+		power += 1;
+	}while( inpmask );
+	
+    
+    return num_ON;
+}
+
 
 #endif

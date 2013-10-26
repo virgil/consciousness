@@ -322,14 +322,7 @@ public:
 	
 	// looking backwards...	
 	
-	// this function is used to remove redundancies between the output states.
-	
-	// calculates the Kullback-Leibler Divergence D_{KL} [ p(X0|a1) || p(X0|b1) ]
-	double DKL_X0a1_from_X0b1( const unsigned int a1, const bitmask A1mask, const unsigned b1, const bitmask B1mask );
-	double DKL_X1a1_from_X1b1( const unsigned int a1, const bitmask A1mask, const unsigned b1, const bitmask B1mask );
-	
-	double prob_a1_given_mu1( const unsigned int a1, const bitmask Amask, const unsigned int mu1, const bitmask MUmask );
-
+    double prob_m1_given_s1( const t_state& restrict m1, const t_state& restrict s1 );
 	
 	
 	
@@ -432,18 +425,11 @@ public:
 
     double prob_m0( const t_state& m0 );
     
-//    double prob_s1_given_m0( const unsigned int s1, const bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
-//    double prob_s1_given_m0( const register unsigned int s1, const register bitmask Smask, const register unsigned int mu0, const bitmask MUmask );
-
+    double prob_s1_given_m0( const t_state& restrict s1, const t_state& restrict m0 );
     double prob_s1_given_m0( const register unsigned int s1, const register bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
+    double prob_s1_given_m0__slower( const unsigned int s1, const bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
     
-	double prob_s1_given_m0__slower( const unsigned int s1, const bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
-
-    double prob_mu0_given_s1( const t_state& mu0, const t_state& s1 );
-    double prob_mu0_given_s1( const t_state& mu0, const t_state& s1, const unsigned int MUsize );
-
-    
-    double prob_mu0_given_s1( const unsigned int mu0, const bitmask MUmask, const unsigned int s1, const bitmask Smask, const unsigned int MUsize );
+    double prob_m0_given_s1( const t_state& m0, const t_state& s1 );
     
 private:
 	
@@ -495,8 +481,6 @@ private:
 							   const unsigned int Xstate0, unsigned int& MUstate0, unsigned int Xstate1, unsigned int& MUstate1 );
 	
 
-
-    double prob_s1_given_m0( const t_state& restrict s1, const t_state& restrict m0 );
     double prob_m0_s1( const t_state& restrict m0, const t_state& restrict s1 );
     
     double H_M0_GIVEN_s1( const bitmask Mmask, const t_state& restrict s1 );

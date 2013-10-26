@@ -295,13 +295,13 @@ double t_consciousness::psi_lowerbound( const t_state& restrict x1state )
             t_state b0state(Bmask, b0);
             
             // top = p(x0|x1)
-            double top = prob_mu0_given_s1( x0state, x1state );
+            double top = prob_m0_given_s1( x0state, x1state );
             
             if( top == 0.0 )
                 continue;
             
             // bottom = p(a0|x1)*p(b0|x1)
-            double bottom = prob_mu0_given_s1(a0state, x1state) * prob_mu0_given_s1(b0state, x1state);
+            double bottom = prob_m0_given_s1(a0state, x1state) * prob_m0_given_s1(b0state, x1state);
             
             summ += top * log2( top / bottom );
             
@@ -315,6 +315,25 @@ double t_consciousness::psi_lowerbound( const t_state& restrict x1state )
         z = 0.0;
     
     assert( 0.0 <= z );
+    
+    return z;
+}
+
+
+double t_consciousness::prob_m0_given_s1( const t_state& m0, const t_state& s1 )
+{
+    assert( is_valid_m0( m0 ) );
+    assert( is_valid_m1( s1 ) );
+    
+    double z = prob_m0_s1( m0, s1 );
+    
+    if( z == 0.0 )
+        return 0.0;
+    
+    z /= prob_s1( s1 );
+    
+    assert( 0 < z );
+    assert( z <= 1.0 );
     
     return z;
 }
@@ -1064,6 +1083,7 @@ double t_consciousness::prob_s1_given_mu0( const unsigned int s1, const bitmask 
 */
 
 
+/*
 double t_consciousness::prob_mu0_given_s1( const t_state& mu0, const t_state& s1 )
 // just an alias to the bitmask version
 {
@@ -1109,6 +1129,7 @@ double t_consciousness::prob_mu0_given_s1( const unsigned int mu0, const bitmask
 	
 	return z;
 }
+*/
 
 double t_consciousness::prob_mu1_given_s0__anticond( const unsigned int mu1, const unsigned int s0, const unsigned int M1mask, const unsigned int S0mask, const unsigned int anticond_mask, const unsigned int M1size, const unsigned int S0size, const unsigned int anticond_size )
 // returns p(mu1|s0 \anticond \anticond_mask ) = p(mu1|s0 \anticond \widetilde{S})
@@ -4271,7 +4292,7 @@ double t_consciousness::H_M0_GIVEN_s1( const bitmask Mmask, const t_state& restr
         const unsigned int m0 = x0;
         t_state m0state(Mmask,m0);
         
-        const double p_m0_given_s1 = prob_mu0_given_s1( m0state, s1state );
+        const double p_m0_given_s1 = prob_m0_given_s1( m0state, s1state );
         
         if( p_m0_given_s1 == 0.0 )
             continue;
@@ -4390,12 +4411,6 @@ double t_consciousness::prob_m0( const t_state& m0 )
     assert( 0.0 < z );
     assert( z < 1.0 );
     return z;
-}
-
-double t_consciousness::prob_mu0_given_s1( const t_state& mu0, const t_state& s1, const unsigned int MUsize )
-// simply an alias to the bitmask version.
-{
-    return prob_mu0_given_s1( mu0.value, mu0.mask, s1.value, s1.mask, MUsize );
 }
 
 
@@ -4733,68 +4748,6 @@ vector<bitmask> t_consciousness::all_s1s( const bitmask Smask )
 
 
 
-double t_consciousness::DKL_S0a1b1_and_S0a1_S0b1( const bitmask S0mask, const unsigned int a1, const bitmask A1mask, const unsigned int b1, const bitmask B1mask )
-// calculates DKL[ p(X0,a1b1) || p(X0,a1)*p(X0,b1) ]
-// which we arrived at using the DKL version of mutual information
-// this expression is useful because it's non-negative!!!
-{
-	assert( S0mask && S0mask <= FULL_MASK );
-	assert( is_valid_m1(a1,A1mask) );
-	assert( is_valid_m1(b1,B1mask) );
-	
-	const unsigned int a1b1 = a1|b1;
-	const bitmask A1B1mask = A1mask|B1mask;
-	const unsigned int Ssize = numunits_in_mask( S0mask );
-	
-	// this doesn't have to be true, but it is for all the cases we're currently looking at.
-	assert( S0mask == FULL_MASK );
-	
-	double summ=0.0;
-	
-	vector<double> indeps;
-	
-	//foreach s0 state...
-	for( int possible_s0=0; possible_s0<=S0mask; possible_s0++ )
-	{
-		// if this possible_s0 has any bits ON outside of S0mask, skip it.
-		if( (S0mask|possible_s0) > S0mask )
-			continue;
-		
-		const unsigned int s0 = possible_s0;
-		
-		// the joint distribution
-		double joint_distrib = prob_mu0_given_s1( s0, S0mask, a1b1, A1B1mask, Ssize );
-		joint_distrib *= prob_s1( a1b1, A1B1mask );
-		
-		// if this is zero then we're going to get 0.0 * log( 0.0 ), thus we skip.
-		if( joint_distrib == 0.0 )
-			continue;
-
-		const double prob_s0_given_a1 = prob_mu0_given_s1( s0, S0mask, a1, A1mask, Ssize );
-		const double prob_s0_given_b1 = prob_mu0_given_s1( s0, S0mask, b1, B1mask, Ssize );
-		
-		double indep_distrib = prob_s0_given_a1 * prob_s0_given_b1;
-		indep_distrib *= (prob_s1(a1,A1mask) * prob_s1(b1,B1mask));
-		
-		
-		indeps.push_back( indep_distrib );
-		
-		// sanity check
-		assert( 0.0 < indep_distrib );
-		
-		const double term = log2( joint_distrib / indep_distrib );
-								 
-		summ += joint_distrib * term;
-	}
-	
-	assert( 0.0 <= summ );
-	
-	// TODO: check upper-bounds...
-	
-	return summ;
-}
-
-
 
 
 double t_consciousness::H_A0_given_b1( const bitmask A0mask, const unsigned int b1, const bitmask B1mask )
@@ -4820,7 +4773,10 @@ double t_consciousness::H_A0_given_b1( const bitmask A0mask, const unsigned int 
 		
 		const unsigned int a0 = possible_a0;
 	
-		const double this_prob_a0_given_b1 = prob_mu0_given_s1( a0, A0mask, b1, B1mask, Asize );
+        t_state a0state(A0mask,a0);
+        t_state b1state(B1mask,b1);
+        
+		const double this_prob_a0_given_b1 = prob_m0_given_s1( a0state, b1state );
 		
 		if( this_prob_a0_given_b1 == 0.0 )
 			continue;
@@ -4869,36 +4825,16 @@ double t_consciousness::I_A0_B1_equals_b1( const bitmask Amask, const bitmask Bm
 	
 	assert( (0.0 < prob_a0) && (prob_a0 < 1.0) );
 	
-	double summ=0.0;
-	//foreach a0 state...
-	for( uint x0=0; x0<=Amask; x0++ )
-	{
-		// if this x0 has bits ON outside of S0, skip it.
-		if( (x0 | Amask) != Amask )
-			continue;
-		
-		const unsigned int a0 = x0 & Amask;
-		assert( a0 <= Amask );
-		
-		//		const double prob_a0_given_b1 = prob_mu0_given_s1( a0, Amask, b1, Bmask );
-		const double prob_a0_given_b1 = prob_mu0_given_s1( a0, Amask, b1, Bmask, Asize );		
-		
-		// if this is 0.0, we don't need to do anymore.  Just skip the next one :)
-		if( prob_a0_given_b1 == 0.0 )
-			continue;
-		
-		//		const double this_prob_s1_given_mu0 = prob_s1_given_mu0( s1, Smask, mu0, Mmask );
-		
-		assert( 0.0 <= prob_a0_given_b1 );
-		assert( prob_a0_given_b1 <= 1.0 );
-		
-		summ += prob_a0_given_b1 * log2( prob_a0_given_b1 / prob_a0 );
-	}
-	
-	
-	assert( 0.0 <= summ );
-	
-	return summ;	
+    double z = H_M0( Amask );
+    t_state b1state(Bmask,b1);
+    
+    z -= H_M0_GIVEN_s1( Amask, b1state );
+    
+    
+    assert( 0.0 <= z );
+    assert( z <= Asize );
+    
+	return z;
 }
 
 
@@ -4929,63 +4865,6 @@ double t_consciousness::perstate_ei( const unsigned int x1 )
 
 
 
-
-double t_consciousness::I_A0_B1_equals_b1__specinfo( const bitmask Amask, const bitmask Bmask, const unsigned int b1 )
-// computes the average specific information between part-state b1 and part Amask
-// I( A0 : B1 = b1 ) = H[A0] - H[A0|B1=b1]
-// Note that for the uniform distribution on A0, this is equivalent to the DKL "specific surprise" definition.
-{
-//	assert( FLAG__PIL_SPECIFIC_INFO == "SPEC_INFORMATION" );
-	
-//	cerr << "Running specific_info" << endl;
-	
-	// assert these are all greater than zero and <= 1
-	assert( Amask && Amask <= FULL_MASK );
-	assert( Bmask && Bmask <= FULL_MASK );
-	assert( is_valid_m1(b1,Bmask) );
-	const unsigned int Asize = numunits_in_mask( Amask );	
-	const double H_A0 = Asize;
-	
-//	// p(mu0) = 1.0 / 2^{|M|}
-//	const double prob_a0 = 1.0 / ((double) (1 << Asize));
-//	assert( (0.0 < prob_a0) && (prob_a0 < 1.0) );
-	
-
-	//foreach a0 state....
-	double summ=0.0;
-	for( uint x0=0; x0<=Amask; x0++ )
-	{
-		// if this x0 has bits ON outside of S0, skip it.
-		if( (Amask|x0) > Amask )
-			continue;
-		
-		const unsigned int a0 = x0 & Amask;
-		assert( a0 <= Amask );
-		
-//		const double prob_a0_given_b1 = prob_mu0_given_s1( a0, Amask, b1, Bmask );
-		const double prob_a0_given_b1 = prob_mu0_given_s1( a0, Amask, b1, Bmask, Asize );		
-
-		// if this is 0.0, we don't need to do anymore.  Just skip the next one :)
-		if( prob_a0_given_b1 == 0.0 )
-			continue;
-		
-		summ -= prob_a0_given_b1 * log2( prob_a0_given_b1 );
-	}
-	
-	double z = H_A0 - summ;
-	
-	
-	if( fequals(z,0.0) )
-		z = 0.0;
-
-	assert( 0.0 <= z );
-	assert( z <= H_A0 );
-	
-	return z;
-}
-
-
-
 bool t_consciousness::is_valid_m0( const statemask mu0, const bitmask MUmask )
 // returns TRUE if the mu0 state is a valid input state of part MUmask
 // this function is here to to sanity-check internal calculations
@@ -5006,28 +4885,12 @@ bool t_consciousness::is_valid_m0( const t_state& restrict mu0 )
     return FALSE;
 }
 
-bool t_consciousness::is_valid_m1( const statemask mu1, const bitmask MUmask )
+bool t_consciousness::is_valid_m1( const statemask m1, const bitmask Mmask )
 // returns TRUE if the mu1 state is a valid output state of part MUmask
 // this function is here to to sanity-check internal calculations
 {
-	// sanity check MUmask and mu1
-    assert( MUmask <= FULL_MASK );
-	assert( MUmask != 0 );
-    assert( MUmask > 0 );
-
-	assert( (MUmask|mu1) == MUmask );
-	
-	// Foreach output state x1...	
-	for( int x1_index=0; x1_index<NUM_X1_STATES; x1_index++ )
-	{
-		const unsigned int x1 = x1_states[x1_index];
-		
-		// if this x1 matches s1, then add it's #x0s to s1
-		if( (x1&MUmask) == mu1 )
-			return TRUE;
-	}
-	
-	return FALSE;
+    t_state m1state( Mmask, m1 );
+    return is_valid_m1( m1state );
 }
 
 bool t_consciousness::is_valid_m1( const t_state& restrict mu1 )
@@ -5054,136 +4917,28 @@ bool t_consciousness::is_valid_m1( const t_state& restrict mu1 )
 	return FALSE;
 }
 
-double t_consciousness::DKL_X1a1_from_X1b1( const unsigned int a1, const bitmask A1mask, const unsigned b1, const bitmask B1mask )
-// calculates the Kullback-Leibiler diverence D_{KL}[ p(X0|a1) || p(X0|b1) ] 
-// A1mask and B1mask *CAN* (and typically do) overlap
+
+double t_consciousness::prob_m1_given_s1( const t_state& restrict m1state, const t_state& restrict s1state )
+// returns p(m1|s1) = p(m1,s1) / p(s1)
 {
-	// assert both masks are valid
-	assert( A1mask && A1mask <= FULL_MASK );
-	assert( B1mask && B1mask <= FULL_MASK );
-	
-	// assert a1,b1 is a subset of A1mask, B1mask
-	assert( is_valid_m1(a1,A1mask) );
-	assert( is_valid_m1(b1,B1mask) );
-	
-	double summ=0.0;
-	
-	// Foreach state x1...	
-	for( int x1_index=0; x1_index<NUM_X1_STATES; x1_index++ )
-	{
-		const unsigned int x1 = x1_states[x1_index];
-		
-		const double prob_x1_given_a1 = prob_a1_given_mu1( x1, FULL_MASK, a1, A1mask );
+    assert( is_valid_m1( m1state ) );
+    assert( is_valid_m1( s1state ) );
+    
+    t_state m1s1state( m1state.mask & s1state.mask, m1state.value & s1state.value );
+    
+    double z = prob_s1( m1s1state );
+    
+    if( z == 0.0 )
+        return 0.0;
+    
+    z /= prob_s1( s1state );
 
-		if( prob_x1_given_a1 == 0.0 )
-			continue;
-		
-		const double prob_x1_given_b1 = prob_a1_given_mu1( x1, FULL_MASK, b1, B1mask );
-		
-		// if this is ever zero with a nonzero prob_x1_given_a1, then the DKL isn't defined.
-		assert( 0.0 < prob_x1_given_b1 );
-
-		const double term = log2( prob_x1_given_a1 / prob_x1_given_b1 );
-		
-		summ += prob_x1_given_a1 * term;		
-	}
-	
-	return summ;
+    assert( 0.0 <= z );
+    assert( z <= 1.0 );
+    
+    return z;
 }
 
-double t_consciousness::DKL_S0a1_from_S0b1( const bitmask S0mask, const unsigned int a1, const bitmask A1mask, const unsigned b1, const bitmask B1mask )
-// calculates the Kullback-Leibiler diverence D_{KL}[ p(S0|a1) || p(S0|b1) ] 
-// A1mask and B1mask don't have to be disjoint.  In fact typically aren't.
-{
-	// assert a1,b1 are valid output states
-	assert( is_valid_m1(a1,A1mask) );
-	assert( is_valid_m1(b1,B1mask) );
-	assert( S0mask && S0mask <= FULL_MASK );
-	
-	const unsigned int Ssize = numunits_in_mask(S0mask);
-	
-	double summ=0.0;
-	//foreach x0 state...
-	for( unsigned int possible_s0=0; possible_s0<=S0mask; possible_s0++ )
-	{
-		// if this possible_s0 has any bits ON outside of S0mask, skip it
-		if( (S0mask|possible_s0) > S0mask )
-			continue;
-		
-		const unsigned int s0 = possible_s0;
-		
-		const double prob_s0_given_a1 = prob_mu0_given_s1( s0, S0mask, a1, A1mask, Ssize );
-		
-		// if this is zero then we can skip the next!
-		if( prob_s0_given_a1 == 0.0 )
-			continue;
-		
-		const double prob_s0_given_b1 = prob_mu0_given_s1( s0, S0mask, b1, B1mask, Ssize );
-		
-		// if this is ever zero with a nonzero prob_x0_given_a1, then the DKL isn't defined.
-		assert( 0.0 < prob_s0_given_b1 );
-		
-		const double term = log2( prob_s0_given_a1 / prob_s0_given_b1 );
-		
-		summ += prob_s0_given_a1 * term;
-	}
-	
-	assert( 0.0 <= summ );
-	
-	return summ;
-}
-
-double t_consciousness::DKL_X0a1_from_X0b1( const unsigned int a1, const bitmask A1mask, const unsigned b1, const bitmask B1mask )
-// calculates the Kullback-Leibiler diverence D_{KL}[ p(X0|a1) || p(X0|b1) ] 
-// A1mask and B1mask don't have to be disjoint.  In fact typically aren't.
-{
-	return DKL_S0a1_from_S0b1( FULL_MASK, a1, A1mask, b1, B1mask );
-}
-
-
-double t_consciousness::prob_a1_given_mu1( const unsigned int a1, const bitmask Amask, const unsigned int mu1, const bitmask MUmask )
-// calculates p( a1 | mu1 ) with both parts at timestep 1
-// note that A1mask and MUmask *CAN* overlap.
-{
-	// verify masks are subsets of the network
-	assert( Amask <= FULL_MASK );
-	assert( MUmask <= FULL_MASK );
-	
-	// assert that states are subsets of their parts
-	assert( is_valid_m1(a1,Amask) );
-	assert( is_valid_m1(mu1,MUmask) );
-
-	unsigned int mu1_sightings=0, a1mu1_sightings=0;
-
-	// Foreach output state x1...
-	for( int x1_index=0; x1_index<NUM_X1_STATES; x1_index++ )
-	{
-		const unsigned int x1 = x1_states[x1_index];
-		
-		// if this x1 matches mu1, then add it's #mu1_sightings
-		if( (x1&MUmask) == mu1 )
-		{
-//			mu1_sightings += (*it).second;
-			mu1_sightings += num_x0s_to_this_x1[x1_index];
-
-			// if this x1 matches mu1 AND a1, then add it's #a1mu1_sightings
-			if( (x1&Amask) == a1 )
-				a1mu1_sightings += num_x0s_to_this_x1[x1_index];
-		}		
-	}
-	
-	if( a1mu1_sightings == 0 )
-		return 0.0;
-
-	// p(a1|mu1) = p( a1,mu1 ) / p(mu1)
-	double z = (double) a1mu1_sightings / (double) mu1_sightings;
-	
-	// this should be 0.0 < because we already checked for the 0.0 case
-	assert( 0.0 < z );
-	assert( z <= 1.0 );
-	
-	return z;
-}
 
 // alias to t_consciousness::binary_repr()
 string t_consciousness::binrep( const unsigned int digit, unsigned int numplaces ) { return binary_repr( digit, numplaces ); }
@@ -5209,68 +4964,8 @@ string t_consciousness::binary_repr( const unsigned int digit, unsigned int nump
 }
 
 
-// returns the number of entries in the array
-void subset2array( unsigned int subset, unsigned int* restrict z )
-{
-
-	unsigned int num_ON=0, power=0;
-	
-	
-	do	{
-		// this only works because we're starting at power=0 and num_ON=0
-		if( subset & 1 ) {
-			z[num_ON] = power;
-			num_ON += 1;
-		}
-		
-		subset >>= 1;
-		power += 1;
-	}while( subset );
-
-}
-
-inline bool fequals( const double a, const double b )
 // if and a b are within PRECISION of each other, return true -- else false.
-{
-
-	return( fabs(a-b) <= PRECISION );
-	
-//	if( fabs(a-b) <= PRECISION ) {
-//		ASSERT( fabs(b-a) <= PRECISION );
-//		return true;
-//	}
-	
-	
-//	return false;
-}
-
-
-double assert_bounds( double lower, double value, double upper )
-// check value against the specified upper and lower bounds.  Being mindful of float-point error at equality.
-{
-    // switch the bounds incase we need to.
-    // this also takes care of floating-point error on the bounds
-    lower = min(lower,upper);
-    upper = max(lower,upper);
-    
-    // this should be true
-    assert( lower <= upper );
-    
-    // address lower floating-point error
-    if( fequals(lower,value) )
-        value = max(lower,value);
-
-    // address upper floating-point error    
-    if( fequals(value,upper) )
-        value = min(value,upper);
-    
-    // these should be true
-    assert( lower <= value );
-    assert( value <= upper );
-    
-    return value;
-}
-
+inline bool fequals( const double a, const double b ) { return( fabs(a-b) <= PRECISION ); }
 
 // floors a double to DECIMAL_PRECISION places
 //long double myceil( long double x ) { return (1/pow( (long double) 10.0,DECIMAL_PRECISION-1)) * ceil( x * pow( (long double) 10.0,DECIMAL_PRECISION-1) ); }
@@ -5287,84 +4982,7 @@ double myround( double x, double precision )
 		precision = DECIMAL_PRECISION;
 	
 	return (1/pow( (double) 10.0,precision)) * round( x * pow( (double) 10.0,precision) );
-//	return x;
-}
-
-string str_rstrip( string haystack, const string needles )
-{
-	// loop until we don't find a needle at the end
-	while( 1 )
-	{
-		bool found_a_needle = false;
-		
-		for( int i=0; i<needles.length(); i++ ) {
-			char temp_char = needles[i];
-			
-			if( temp_char == haystack[ haystack.length()-1 ] ) {
-				haystack.erase( haystack.length()-1 );
-				found_a_needle = true;
-			}
-			
-		}
-		
-		
-		if( found_a_needle==false )
-			break;
-		
-	}
-	
-	return haystack;
-}
-
-string str_istrip( string haystack, string needle )
-// returns the string haystack with string 'needle' removed from the beginning (if it exists at all)
-{
-	while( str_istartswith( haystack, needle ) ) {
-		haystack.erase( 0, needle.length() );
-	}
-	
-	return haystack;
-}
-
-
-bool str_istartswith( string haystack, string needle )
-// returns TRUE if string haystrack starts with needle
-// else returns FALSE
-{
-	for( int i=0; i<haystack.length(); i++ )
-		haystack[i] = tolower(haystack[i]);
-	
-	for( int i=0; i<needle.length(); i++ )
-		needle[i] = tolower(needle[i]);
-	
-	return str_startswith( haystack, needle );
-}
-
-
-
-unsigned int mask2array( unsigned int inpmask, unsigned int* restrict z )
-{
-	//	unsigned int power = (unsigned int) floor( log2( subset ) );
-	unsigned int power=0, num_ON=0;
-	//	unsigned int temp_S;
-	
-	//	// if outside is TRUE, get the nodes that are OUTSIDE the subset
-	//	if( outside == true )
-	//		temp_S ^= max_S;
-	
-	do	{
-		// this only works because we're starting at power=0 and num_ON=0
-		if( inpmask&1 ) {
-			z[num_ON] = power;
-			num_ON += 1;
-		}
-		
-		inpmask >>= 1;
-		power += 1;
-	}while( inpmask );
-	
-    
-    return num_ON;
+    //	return x;
 }
 
 #endif
