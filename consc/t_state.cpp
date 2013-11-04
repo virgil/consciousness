@@ -73,10 +73,9 @@ t_state::t_state( const bitmask inp_mask, const unsigned int inp_value )
 
 void t_state::update( const bitmask inp_mask, const unsigned int inp_value )
 // create a new state from inp_mask and inp_value
+// NOTE: inp_mask CAN BE ZERO
 {
-    // assert that the inp_mask exists.
-    assert( inp_mask );    
-    
+
     
     // assert that inp_value is a subset of inp_mask
     assert( (inp_value|inp_mask) == inp_mask );

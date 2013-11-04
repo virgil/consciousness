@@ -28,7 +28,6 @@
 #include "t_subset.h"
 #include "t_state.h"
 #include "PartitionEnumerator.h"
-#include "t_latticeatom.h"
 #include <boost/foreach.hpp>
 #include "helpers.h"
 
@@ -168,24 +167,17 @@ class t_consciousness{
 public:
     
     
-    // Compute the Information beyond the Elements, IbE, for a given partition.
-    double IbE( const t_subset& restrict R0mask, const bitmask S1mask );
-    double IbE_s1( const t_subset& restrict R0mask, const t_state& s1state );
-
-    // TODO: remove these functions
-    double IbAp( const t_subset& restrict R0mask, const bitmask S1mask );
-    double IbAp_s1( const t_subset& restrict R0mask, const t_state& s1state );
-
-    // TODO: remove these functions
-    double Ib2p( const t_subset& restrict M0mask, const bitmask S1mask );
-    double IbDp( const t_subset& restrict M0mask, const bitmask S1mask );
-    
-
     // for the PSI measure
     double ei( const t_state& restrict s1 );
     t_psi_result psi( const t_state x1 );
     double psi_lowerbound( const t_state& restrict x1 );
     double psi_upperbound( const t_state& restrict x1 );
+    
+    t_psi_result bracketpsi();
+//    double bracketpsi();
+    double bracketpsi_lowerbound();
+    double bracketpsi_upperbound();
+    
 
 
     // returns the perstate total ei.  This should be the UPPER BOUND of the perstate total_holism and total_integration.
@@ -193,37 +185,40 @@ public:
 	double perstate_ei( const bitmask S0mask, const unsigned int m1, const bitmask M1mask );	// for a part of a subset
 	double perstate_ei( const unsigned int x1 );												// for the whole system
 
-    // TODO: remove these functions
-	double ei_weakestlink_x1( const t_partition& P, const unsigned int x1 );
-    double bracket_weakestlink( const t_partition& P );
+	vector<bitmask> all_s1s( const bitmask Smask );
+	
+    
+    double prob_m0( const t_state& m0 );
+    
+    double prob_s1_given_m0( const t_state& restrict s1, const t_state& restrict m0 );
+    double prob_s1_given_m0( const register unsigned int s1, const register bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
+    double prob_s1_given_m0__slower( const unsigned int s1, const bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
+    
+    double prob_m0_given_s1( const t_state& m0, const t_state& s1 );
 
+    
+    double prob_m1_given_s1( const t_state& restrict m1, const t_state& restrict s1 );
+
+    
+    // These functions are for calculating new_holism over a subset
+    double prob_s1( const unsigned int s1, const unsigned int partmask );
+    double prob_s1( const t_state& s1 );
+    
+    double prob_m0_s1( const t_state& restrict m0, const t_state& restrict s1 );
+    double prob_m0_s1( const unsigned int m0, const bitmask M0mask, const unsigned int s1, const bitmask S1mask );
+    
+
+    double prob_m0_given_s0_r1( const t_state& m0state, const t_state& s0state, const t_state& r1state );
 
     ////////////////////////////////////////////////////////////	
 	// current scratch space
     ////////////////////////////////////////////////////////////	
-	double specific_info__cond__A0_to_b1_given_c1( const bitmask A0mask, const unsigned int b1, const bitmask B1mask, const unsigned int c1, const bitmask C1mask );
 	double H_A0_given_b1( const bitmask A0mask, const unsigned int b1, const bitmask B1mask );
+	double H_A0_given_B0_c1( const bitmask A0mask, const bitmask B0mask, const t_state& restrict c1state );
 	
 	double I_A0_B1_equals_b1( const bitmask Amask, const bitmask Bmask, const unsigned int b1 );
 	double I_A0_B1_equals_b1( const bitmask Amask, const t_state& b1 );
 
-    
-    /// SSB Synergy for a bipartition
-	double DKL_S0a1_from_S0b1( const bitmask S0, const unsigned int a1, const bitmask A1mask, const unsigned b1, const bitmask B1mask );
-	
-	//double PMI_a0_b1( const unsigned int a0, const bitmask A0mask, const unsigned int b1, const bitmask B1mask );
-    
-    //double PMI_a0_b1( const t_state& restrict a0, const t_state& restrict b1 );
-    
-	//double PMI_a0_b1_given_c0( const t_state& restrict a0, const t_state& restrict b1, const t_state& restrict c0 );
-	//double PMI_a0_b1_given_c1( const t_state& restrict a0, const t_state& restrict b1, const t_state& restrict c1 );
-	
-	
-	double DKL_S0a1b1_and_S0a1_S0b1( const bitmask S0mask, const unsigned int a1, const bitmask A1mask, const unsigned int b1, const bitmask B1mask );
-    
-    double prob_a0_b1( const unsigned int a0, const bitmask A0mask, const unsigned int b1, const bitmask B1mask );
-    double prob_a0_given_b0_c1( const unsigned int a0, const bitmask A0mask, const unsigned int b0, const bitmask B0mask, const unsigned int c1, const bitmask C1mask );
-	
 	
     ////////////////////////////////////////////////////////////
     // For network type 'neural'
@@ -238,15 +233,9 @@ public:
     ////////////////////////////////////////////////////////////
 
     // cache of each possible H[M_0|M_1]
-    double* restrict H_M1_cache;
     double* restrict H_M0_GIVEN_M1_cache;
     
-    ////////////////////////////////////////////////////////////
-    // contains the x0s that goto a particular x1
-    // given an x1 state, returns a vector of the x0s that goto that x1.
-    map< int, vector< int > > possible_x0s;
-    ////////////////////////////////////////////////////////////
-        
+    
     ////////////////////////////////////////////////////////////
     // For network type 'circuit'
     ////////////////////////////////////////////////////////////
@@ -315,18 +304,6 @@ public:
     double bracket_ei( unsigned int subset );    // calculates bracket_ei for total partition
     double bracket_ei( const t_subset& restrict S );    // calculates bracket_ei for total partition    
 
-    double total_correlation( const vector< unsigned int >& parts, const unsigned int anticond_mask = 0 );
-
-    
-	vector<bitmask> all_s1s( const bitmask Smask );
-	
-	// looking backwards...	
-	
-    double prob_m1_given_s1( const t_state& restrict m1, const t_state& restrict s1 );
-	
-	
-	
-	
     /////////////////////////////////////////////////////////////////////////////
     // Functions for computing INFORMATION FLOW via Ay, Polani (2006)
     /////////////////////////////////////////////////////////////////////////////
@@ -369,9 +346,6 @@ public:
 
     inline unsigned int size_of_smallest_part( const t_partition& restrict P );
 
-    
-    // this one is a little faster than the DKL version.
-    double I_A0_B1_equals_b1__specinfo( const bitmask Amask, const bitmask Bmask, const unsigned int b1 );
     
     
     //misc
@@ -422,14 +396,7 @@ public:
     t_consciousness( void );
     ~t_consciousness( void );
 
-
-    double prob_m0( const t_state& m0 );
     
-    double prob_s1_given_m0( const t_state& restrict s1, const t_state& restrict m0 );
-    double prob_s1_given_m0( const register unsigned int s1, const register bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
-    double prob_s1_given_m0__slower( const unsigned int s1, const bitmask Smask, const unsigned int mu0, const bitmask MUmask, const unsigned int MUsize );
-    
-    double prob_m0_given_s1( const t_state& m0, const t_state& s1 );
     
 private:
 	
@@ -443,8 +410,6 @@ private:
 	bool is_valid_m1( const t_state& restrict mu1 );
 	bool is_valid_m0( const t_state& restrict mu0 );
 	
-    vector< t_phi_result > superset_until_top_out( vector<t_subset> starts );
-
     ////////////////////////////////////////////////////////////
     // For perturbing wires
     ////////////////////////////////////////////////////////////    
@@ -460,10 +425,7 @@ private:
     double prob_mu1_given_mu0__anticond( const unsigned int mu1, const unsigned int mu0, const unsigned int partmask, const unsigned int partsize );
     double prob_mu0_given_mu1__anticond( const unsigned int mu0, unsigned int mu1, unsigned int partmask, unsigned int partsize );
     
-    
-    // These functions are for calculating new_holism over a subset
-    double prob_s1( const unsigned int s1, const unsigned int partmask );
-    double prob_s1( const t_state& s1 );
+
 
     double prob_node_matches_mu1( const unsigned int part_mask, const unsigned int node_index, const unsigned int mu0, 
 								 const unsigned int mu1, const unsigned int* restrict nodes, const unsigned int numnodes );
@@ -481,8 +443,6 @@ private:
 							   const unsigned int Xstate0, unsigned int& MUstate0, unsigned int Xstate1, unsigned int& MUstate1 );
 	
 
-    double prob_m0_s1( const t_state& restrict m0, const t_state& restrict s1 );
-    
     double H_M0_GIVEN_s1( const bitmask Mmask, const t_state& restrict s1 );
     double H_M0_GIVEN_S1( const bitmask M0, const bitmask S1 );
     double H_M0_GIVEN_M1( const bitmask M );

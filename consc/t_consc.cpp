@@ -172,7 +172,6 @@ t_consciousness::t_consciousness()
 	this->H_X1 = DBL_NONE;	
 	this->H_X0_GIVEN_X1 = DBL_NONE;
 	this->NUM_X1_STATES = DBL_NONE;
-	this->H_M1_cache = NULL;
 	this->H_M0_GIVEN_M1_cache = NULL;
 	this->prob_s1_given_mu0__Vnodes = NULL;
 	
@@ -199,11 +198,6 @@ t_consciousness::~t_consciousness()
 		num_x0s_to_this_x1 = NULL;
 	}
 	
-	if( H_M1_cache != NULL ) {
-		delete [] H_M1_cache;
-		H_M1_cache = NULL;
-	}
-
 	if( H_M0_GIVEN_M1_cache != NULL ) {
 		delete [] H_M0_GIVEN_M1_cache;
 		H_M0_GIVEN_M1_cache = NULL;
@@ -221,8 +215,7 @@ t_consciousness::~t_consciousness()
 double t_consciousness::H_M0( const t_subset& restrict S )
 // returns H[M0] for a given subset M
 {
-	double z = S.numnodes();
-	return z;
+	return (double) S.numnodes();
 }
 
 double t_consciousness::H_M0( const unsigned int S )
@@ -239,6 +232,133 @@ double t_consciousness::H_M1_GIVEN_M0( const unsigned int partmask )
 	return H_M1( partmask ) + H_M0_GIVEN_M1__ELEMENTS( partmask ) - H_M0( partmask );
 }
 
+
+t_psi_result t_consciousness::bracketpsi( )
+{
+
+    t_psi_result z;
+
+    z.ei = I_A0_B1( FULL_MASK, FULL_MASK );
+    z.lowerbound = bracketpsi_lowerbound();
+    z.upperbound = bracketpsi_upperbound();
+    
+    if( fequals(z.lowerbound,z.upperbound) )
+        z.lowerbound = min(z.lowerbound,z.upperbound);
+    
+    assert( z.lowerbound <= z.upperbound );
+    
+    return z;
+}
+
+
+double t_consciousness::bracketpsi_lowerbound()
+// Uses the bound <psi>_\min( \setX : Y ) = \min_{A \subset X} I(A_0 : B_0 | Y )
+{
+    // You must use this as the original value.  Otherwise things break.
+    double z = DBL_MAX;
+    
+    // enumerate very possible bipartition
+    for( bitmask Amask = 1; Amask < FULL_MASK; Amask++ )
+    {
+        bitmask Bmask = FULL_MASK ^ Amask;
+        
+        // there's no overlap between Amask and Bmask
+        assert( (Amask & Bmask) == 0 );
+        
+        // Amask and Bmask pave the entire system.
+        assert( (Amask | Bmask) == FULL_MASK );
+        
+        
+        // uses the entropy expression for conditional mutual information from Wikpiedia.
+        double this_term = H_A0_B1(Amask, FULL_MASK) + H_A0_B1(Bmask, FULL_MASK) - H_A0_B1(FULL_MASK, FULL_MASK) - H_X1;
+
+        z = min(z,this_term);
+    }
+    
+    
+    // remove any -0.0s
+    if( fequals(z,-0.0) )
+        z = 0.0;
+    
+    assert( 0.0 <= z );
+    
+    return z;
+    
+}
+
+
+double t_consciousness::bracketpsi_upperbound()
+// Uses the bound
+// <psi>_\max( \setX : Y )  = \min_{i \in \{1, ... , n\} } DKL[ p(\Xn, Y) || p(X_{1 \ldots n \setminus i}, Y) p(X_i) ]
+//                          = \min_{A_0 \in nodes } DKL[ p(FULL_MASK, Y) || p(B_0, Y) p(A_0) ]
+{
+    // You must use this as the original value.  Otherwise things break.
+    double z = DBL_MAX;
+    
+    // Amask is a single bit that shifts to the LEFT at the end of the loop.
+    for( bitmask Amask=1; Amask<=FULL_MASK; Amask <<= 1 )
+    {
+        bitmask Bmask = FULL_MASK ^ Amask;
+        
+        // there's no overlap between Amask and Bmask
+        assert( (Amask & Bmask) == 0 );
+        
+        // Amask and Bmask pave the entire system.
+        assert( (Amask | Bmask) == FULL_MASK );
+        
+        assert( numunits_in_mask(Amask) == 1 );
+        assert( numunits_in_mask(Bmask) == numunits - 1 );
+        
+        
+        double summ=0.0;
+        //foreach x0 state...
+        for( unsigned int x0=0; x0<numstates; x0++ )
+        {
+            const unsigned int a0 = x0 & Amask;
+            const unsigned int b0 = x0 & Bmask;
+
+            
+            
+            t_state a0state(Amask, a0);
+            t_state b0state(Bmask, b0);
+            t_state a0b0state(Amask|Bmask,a0|b0);
+
+            
+            // OPTIMIZATION: We can safe a lot of effort by only looking at the x1 state arising from the x0 state instead of looking over ALL x1 states.
+            // This is because we multiply by the probability p(x0state, x1state).  This probability will be ZERO for all states x1 except for the x1 state
+            // that arises from this x0.
+            
+            const unsigned int x1 = states[x0];
+            t_state x1state(FULL_MASK, x1);
+            
+
+            const double prob_a0b0_y = prob_m0_s1( a0b0state, x1state );
+            assert( 0.0 < prob_a0b0_y );                    // sanity check
+            assert( prob_a0b0_y < 1.0 );                    // sanity check
+
+            
+            const double prob_b0_y = prob_m0_s1( b0state, x1state );
+            const double prob_a0 = prob_m0( a0state );
+            
+            
+            summ += prob_a0b0_y * log2( prob_a0b0_y / (prob_b0_y * prob_a0)  );
+        }
+        
+        z = min(z,summ);
+        
+    }
+    
+    
+    // remove any -0.0s
+    if( fequals(z,-0.0) )
+        z = 0.0;
+    
+    assert( 0.0 <= z );
+    
+    return z;
+    
+    
+}
 
 
 t_psi_result t_consciousness::psi( const t_state x1 )
@@ -338,7 +458,59 @@ double t_consciousness::prob_m0_given_s1( const t_state& m0, const t_state& s1 )
     return z;
 }
 
+
+double t_consciousness::H_A0_given_B0_c1( const bitmask A0mask, const bitmask B0mask, const t_state& restrict c1state )
+// computes H(A0|B0,c1) = \sum_{a0,b0} p(a0|b0,c1) \log [ 1 / p(a0|b0,c1) ]
+{
+    assert( A0mask && A0mask <= FULL_MASK );
+    assert( B0mask && B0mask <= FULL_MASK );
+    
+    // assert A0 and B0 have no overlap.  This isn't strictly necessary, but we're never dealing with overlapping subsets
+    assert( (A0mask & B0mask) == 0 );
+    
+    assert( is_valid_m1( c1state ) );
+    
+    
+    double z = 0.0;
+    
+    // foreach a0....
+	for( uint possible_a0=0; possible_a0<=A0mask; possible_a0++ )
+	{
+		// if this possible_a0 has bits on outside of the part, skip it.
+		if( (possible_a0 | A0mask) != A0mask )
+			continue;
+        
+        // remove all bits outside of the partmask.
+        t_state a0state( A0mask, possible_a0 & A0mask );
+        
+        //foreach b0...
+        for( uint possible_b0=0; possible_b0<=B0mask; possible_b0++ )
+        {
+            // if this possible_a0 has bits on outside of the part, skip it.
+            if( (possible_b0 | B0mask) != B0mask )
+                continue;
+        
+            t_state b0state( B0mask, possible_b0 & B0mask );
+            
+            double term = prob_m0_given_s0_r1( a0state, b0state, c1state );
+            
+            if( term == 0.0 )
+                continue;
+
+            z += term * log2( 1.0 / term );
+        }
+    }
+        
+    if( fequals(z,-0.0) )
+        z = 0.0;
+    
+    assert( 0.0 <= z );
+    
+    return z;
+}
+
 double t_consciousness::psi_upperbound( const t_state& restrict x1state )
+// psi is doubled by the DKL[ p(A0,B0|x1) || p(A0|B0)*p(B0|x1) ] = DKL[ p(A0,B0|x1) || p(A0)*p(B0|x1) ]
 {
     assert( is_valid_m1( x1state ) );
     
@@ -363,21 +535,7 @@ double t_consciousness::psi_upperbound( const t_state& restrict x1state )
         assert( numunits_in_mask(Bmask) == numunits - 1 );
         
 
-/////////////////////////////////////////////////////////////////////////////////////
-        double summ1 = I_A0_B1_equals_b1( FULL_MASK, x1state );
-        summ1 -= I_A0_B1_equals_b1( Bmask, x1state );
-        cout << "summ1=" << summ1 << endl;
-/////////////////////////////////////////////////////////////////////////////////////
-
-        double summ4= H_M0(Amask);
-        summ4 += H_M0_GIVEN_s1( Bmask, x1state );
-        summ4 -= H_M0_GIVEN_s1( FULL_MASK, x1state );
-        
-        
-
-        double summ2 = 0.0;
-        double summ3 = 0.0;
-
+        double summ=0.0;
         //foreach x0 state...
         for( unsigned int x0=0; x0<numstates; x0++ )
         {
@@ -386,57 +544,20 @@ double t_consciousness::psi_upperbound( const t_state& restrict x1state )
             
             t_state a0state(Amask, a0);
             t_state b0state(Bmask, b0);
-            t_state x0state(FULL_MASK, x0);
+            t_state a0b0state(Amask|Bmask,a0|b0);
+            
+            const double prob_a0b0_given_y = prob_m0_given_s1( a0b0state, x1state );
 
-            
-            double prob_aby = prob_m0_s1( x0state, x1state );
-            double prob_by = prob_m0_s1( b0state, x1state );
-            
-            double prob_y_given_ab = prob_s1_given_m0( x1state, x0state );
-            double prob_y_given_b = prob_s1_given_m0( x1state, b0state );
-            
-            if( prob_aby == 0.0 )
+            if( prob_a0b0_given_y == 0.0 )
                 continue;
             
-            summ3 += (prob_aby / prob_by) * log2( prob_y_given_ab / prob_y_given_b );
+            const double prob_a = prob_m0( a0state );
+            const double prob_b0_given_y = prob_m0_given_s1( b0state, x1state );
             
-
-            
-            /*
-            const double top_numerator = prob_a0_b1( x0, FULL_MASK, x1state.value, x1state.mask );
-            const double top_denominator = prob_a0_b1( b0, Bmask, x1state.value, x1state.mask );
-            
-            
-            assert( top_numerator <= top_denominator );
-            
-            // top = p(a0|b0,x1) = p(a0,b0,x1) / p(b0,x1)
-            const double top = top_numerator / top_denominator;
-            
-            assert( top <= 1.0 );
-
-            // bottom = p(a0)
-            t_state a0state(Amask, a0);
-            double bottom = prob_m0( a0state );
-
-            
-            cout << "\t p(a0=" << a0 << ",b0=" << b0 << ",x1=" << x1state.value << ")=" << top_numerator << "\t p(b0,x1)=" << top_denominator << "\t p(a0|b0,x1)=" << top;
-            cout << "\t p(a0)=" << bottom;
-            cout << "\t log2[ p(a0|b0,x1) / p(a0) ]=" << log2( top / bottom ) << endl;
-            
-            
-            if( top_numerator == 0.0 )
-                continue;
-
-            
-            summ2 += top * log2( top / bottom );
-            */
-            
+            summ += prob_a0b0_given_y * log2( prob_a0b0_given_y / (prob_a * prob_b0_given_y)  );
         }
-// */
-//        cout << "summ2=" << summ2 << endl;
-        cout << "summ3=" << summ3 << endl;
-        cout << "summ4=" << summ4 << endl;
-        z = min(z,summ2);
+
+        z = min(z,summ);
         
     }
 
@@ -981,6 +1102,9 @@ double t_consciousness::prob_s1_given_m0( const t_state& restrict s1, const t_st
     
     z /= prob_m0( m0 );
     
+    assert( 0.0 < z );
+    assert( z <= 1.0 );
+    
     return z;
 }
 
@@ -1084,11 +1208,6 @@ double t_consciousness::prob_s1_given_mu0( const unsigned int s1, const bitmask 
 
 
 /*
-double t_consciousness::prob_mu0_given_s1( const t_state& mu0, const t_state& s1 )
-// just an alias to the bitmask version
-{
-    return this->prob_mu0_given_s1( mu0.value, mu0.mask, s1.value, s1.mask, mu0.size() );
-}
 
 double t_consciousness::prob_mu0_given_s1( const unsigned int mu0, const bitmask MUmask, const unsigned int s1, const bitmask Smask, const bitmask MUsize )
 // calculates p(mu0|s1) from p(s1|mu0)
@@ -1207,6 +1326,7 @@ double t_consciousness::prob_s1( const unsigned int s1, const bitmask Smask )
     t_state s1state(Smask,s1);
     return prob_s1( s1state );
 }
+
 
 double t_consciousness::prob_s1( const t_state& restrict s1state )
 // returns p( S1 = s1 )
@@ -3028,32 +3148,20 @@ double t_consciousness::bracket_ei( unsigned int subset )
 // if passed subset it returns |S| - H[S0|S1]
 {
 	ASSERT( subset > 0 );
-	double z;	
-	
+
 	// is S the total partition?
 	if( subset == FULL_MASK )
 	{
-		
-		//		if( ! fequals( H_X0_GIVEN_X1, H_S0_given_S1(S) ) ) {
-		//			cout << "H[X0|X1]=" << H_X0_GIVEN_X1 << "\t\t H[S0|S1]=" << H_S0_given_S1(S) << endl;
-		//			cout << "H[X1]=" << this->H_X1 << endl;
-		//		}
-		
 		assert( fequals( H_X0_GIVEN_X1, H_M0_GIVEN_M1(subset) ) );
-		
-		z = this->H_X1;
+		return this->H_X1;
 	}
 	
 	
-    z = I_A0_B1( subset, subset );
-    
-	if( subset != FULL_MASK )
-		cerr << "Computing <ei(subset)> when subset != FULL_MASK" << endl;
+    double z = I_A0_B1( subset, subset );
     
 	// replace any -0.0's with 0.0
-	if( z == -0.0 )
-		z = fabs(z);
-	
+	if( fequals(z,-0.0) )
+		z = 0.0;
 	
 	return z;
 }
@@ -3114,9 +3222,9 @@ double t_consciousness::H_M0_GIVEN_M1( const unsigned int part_mask )
 
 	
 	assert( z >= 0.0 );
-
-	// remove any -0.0s
-	z = fabs(z);
+    
+    if( fequals(z,-0.0) )
+        z = 0.0;
 	
 	if( FLAG__CACHE_M0_GIVEN_M1 ) {
 		// Store the part entropy in the cache, if we're doing that.
@@ -3468,15 +3576,6 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 	{
 		int x1, p;
 		
-/*		We don't need the state_map (for now)		
-		this->state_map.resize(k);
-		for(i=0;i<k;i++)
-		{
-			this->state_map[i].resize(k);
-			for(j=0;j<k;j++)
-				this->state_map[i][j]=0;
-		}
-*/		
 		for(int x0=0;x0<k;x0++)
 		{
 			x1=0;
@@ -3507,9 +3606,6 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 			}
 			this->states[x0] = x1;
 			this->existing_states[x1]++;
-//			this->possible_x0s[x1].push_back( x0 );
-			//			printf("%i	->	%i\n",i,ns);
-//			this->state_map[i][ns]++;
 		}
 	}
 	
@@ -3517,16 +3613,6 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 	else if( this->networktype == "neural" )
 	{
 		
-/*		We don't need the state_map (for now)
-		this->state_map.resize(k);
-
-		for(int x0=0;x0<k;x0++)
-		{
-			this->state_map[x0].resize(k);
-			for(int x1=0;x1<k;x1++)
-				this->state_map[x0][x1]=0;
-		}
-*/
 		//foreach input state x0...
 		for(unsigned int x0=0;x0<k;x0++)
 		{
@@ -3553,10 +3639,6 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 			// Have our x1 state now.  Update stuff.
 			this->states[x0] = x1;
 			this->existing_states[x1]++;
-//			this->state_map[x0][x1] = 1;			
-//			this->possible_x0s[x1].push_back( x0 );
-//			if(show)
-//				printf("%i	->	%i\n",x0,x1);
 		}
 	}
 
@@ -3583,12 +3665,9 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 		// 1. add this x1 to our list of x1 states
 		// 2. add this num_x0s to our array of num_x0s states		
 		this->x1_states[x1_index] = x1;
-//		this->num_x0s_to_this_x1[x1_index] = num_x0s;
 		x1_index += 1;
 		///////////////////////////////////////////////////////////////
 		
-		// sanity check the possible_x0s data-structure.  The number of x0s should be equal to the num_x0s as reported by existing_states.
-//		assert( this->possible_x0s[x1].size() == num_x0s );
 
 		///////////////////////////////////////////////////////////////		
 		// 3. make H[X0|X1=x1] and sanity check
@@ -3615,7 +3694,7 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 
 	
     this->H_X0_GIVEN_X1 /= double(this->numstates);	
-//	this->H_X0_GIVEN_X1 = this->H_X0_GIVEN_X1;
+
 	
 	// Calculate H(X1) using...
 	// I(X0:X1) = H(X1) - H(X1|X0) = H(X1) = N - H(X0|X1)
@@ -3639,8 +3718,6 @@ void t_consciousness::make_all_states( t_cmdline_args &args, bool show){
 	// assert that the number of units isn't bigger than the number of bits in an unsigned int
 	assert( this->numunits <= (sizeof(unsigned int)*8) );
 	
-	// initialize the cache(s)
-	assert( H_M1_cache == NULL );
 	assert( H_M0_GIVEN_M1_cache == NULL );
 	assert( prob_s1_given_mu0__Vnodes == NULL );
 
@@ -4414,22 +4491,25 @@ double t_consciousness::prob_m0( const t_state& m0 )
 }
 
 
-double t_consciousness::prob_a0_given_b0_c1( const unsigned int a0, const bitmask A0mask, const unsigned int b0, const bitmask B0mask, const unsigned int c1, const bitmask C1mask )
+double t_consciousness::prob_m0_given_s0_r1( const t_state& m0state, const t_state& s0state, const t_state& r1state )
 // Returns p(a0|b0,c1) = p(a0,b0,c1) / p(b0,c1)
 {
-    // assert our c1 is valid
-    assert( is_valid_m1( c1, C1mask ) );
+    assert( is_valid_m0( m0state ) );
+    assert( is_valid_m0( s0state ) );
+    assert( is_valid_m1( r1state ) );
     
     // assert A0mask and B0mask don't overlap.  They technically could overlap, but so far we've never wanted to do that.
-    assert( (A0mask & B0mask) == 0 );
+    assert( (m0state.mask & s0state.mask) == 0 );
 
+    // make a new joint state
+    t_state m0s0state( m0state.mask | s0state.mask, m0state.value | s0state.value );
     
-    double z = prob_a0_b1( a0|b0, A0mask|B0mask, c1, C1mask );
+    double z = prob_m0_s1( m0s0state, r1state );
     
     if( z == 0.0 )
         return 0.0;
 
-    z /= prob_a0_b1( b0, B0mask, c1, C1mask );
+    z /= prob_m0_s1( s0state, r1state );
     
     
     assert( 0 <= z );
@@ -4438,24 +4518,13 @@ double t_consciousness::prob_a0_given_b0_c1( const unsigned int a0, const bitmas
     return z;    
 }
 
-double t_consciousness::prob_a0_b1( const unsigned int a0, const bitmask A0mask, const unsigned int b1, const bitmask B1mask )
-// Returns the probability of state a0 and b1 co-occurring.  ex: p(a0,b1) = p(a0) * p(b1|a0)
+double t_consciousness::prob_m0_s1( const unsigned int m0, const bitmask M0mask, const unsigned int s1, const bitmask S1mask )
+// Returns the probability of state m0 and s1 co-occurring.
 {
-    assert( is_valid_m1( b1, B1mask ) );
-    assert( is_valid_m0( a0, A0mask ) );
+    t_state m0state(M0mask,m0);
+    t_state s1state(S1mask,s1);
     
-    const unsigned int Asize = numunits_in_mask(A0mask);
-    // p(a0) = 1.0 / 2^{|A|}
-    
-    t_state a0state(A0mask,a0);
-    t_state b1state(B1mask,b1);
-    
-    double z = prob_m0_s1( a0state, b1state );
-    
-    assert( 0 <= z );
-    assert( z <= 1.0 );
-    
-    return z;
+    return prob_m0_s1( m0state, s1state );
 }
 
 int t_consciousness::save_to_file(string ofilename, bool perstate, bool bracketphi, bool highestbracketphi, bool bracketMCs, bool higheststatephi, bool highestbracketei, bool higheststateei )
@@ -4594,12 +4663,15 @@ int t_consciousness::save_to_file(string ofilename, bool perstate, bool bracketp
 	{
 		t_phi_result r = this->bracketphi( this->FULL_MASK );
 		r.round();
+        
+        t_psi_result s = this->bracketpsi();
+
 
 		tempfile << "bracket:" << "\tei=" << r.ei << "\tMIPscore=" << r.mip_score << "\t#MIPs=" << r.MIPs.size() << "\tPHIs=" << PHIs2str(r.PHIs, r.ei) << "\tMIPs=" << partitions2str(r.MIPs);
         
         t_partition P = r.MIPs[0];
         
-//        tempfile << "\tpsi_lower=" << bracketpsi_lower() << "\tpsi_upper=" << bracketpsi_upper();
+        tempfile << "\tpsi_lower=" << s.lowerbound << "\tpsi_upper=" << s.upperbound;
 
 		tempfile << endl;
 		
@@ -4805,18 +4877,11 @@ double t_consciousness::H_A0_given_b1( const bitmask A0mask, const unsigned int 
 
 
 double t_consciousness::I_A0_B1_equals_b1( const bitmask Amask, const t_state& b1state )
-// alias to I_A0_B1 without the t_state
-{
-    return I_A0_B1_equals_b1( Amask, b1state.mask, b1state.value );
-}
-
-double t_consciousness::I_A0_B1_equals_b1( const bitmask Amask, const bitmask Bmask, const unsigned int b1 )
-// calculates the "specific-surprise" DKL, of I( A0 : B1 = b1 )
+// computes the specific information I(A0:b1) = H(A0) - H(A0|b1)
 {
 	// assert these are all greater than zero and <= 1
 	assert( Amask && Amask <= FULL_MASK );
-	assert( Bmask && Bmask <= FULL_MASK );
-	assert( is_valid_m1(b1,Bmask) );
+	assert( is_valid_m1(b1state) );
 	
 	const unsigned int Asize=numunits_in_mask(Amask);
 	
@@ -4826,10 +4891,8 @@ double t_consciousness::I_A0_B1_equals_b1( const bitmask Amask, const bitmask Bm
 	assert( (0.0 < prob_a0) && (prob_a0 < 1.0) );
 	
     double z = H_M0( Amask );
-    t_state b1state(Bmask,b1);
     
     z -= H_M0_GIVEN_s1( Amask, b1state );
-    
     
     assert( 0.0 <= z );
     assert( z <= Asize );
@@ -4837,27 +4900,26 @@ double t_consciousness::I_A0_B1_equals_b1( const bitmask Amask, const bitmask Bm
 	return z;
 }
 
+double t_consciousness::I_A0_B1_equals_b1( const bitmask Amask, const bitmask Bmask, const unsigned int b1 )
+// calculates the "specific-surprise" DKL, of I( A0 : B1 = b1 )
+{
+    
+    t_state b1state(Bmask, b1);
+    return I_A0_B1_equals_b1(Amask, b1state );
+}
+
 
 double t_consciousness::perstate_ei( const bitmask S0mask, const unsigned int m1, const bitmask M1mask )
-// computes I( S_0 : M_1 = m1 ) using both spec_info and spec_surprise
+// computes I( S_0 : M_1 = m1 ) using spec-info
 {
-	// validate M1mask and state m1
-	assert( S0mask && S0mask <= FULL_MASK );
-	assert( is_valid_m1(m1, M1mask) );
-	
-	double z = I_A0_B1_equals_b1( S0mask, M1mask, m1 );
-
-	assert( 0.0 <= z );
-    assert( z <= H_M0(S0mask) );
-
-	return z;
+    t_state m1state( M1mask, m1 );
+    return I_A0_B1_equals_b1( S0mask, m1state );
 }
 
 double t_consciousness::perstate_ei( const unsigned int x1 )
 // computes I( X_0 : X_1 = x1 ) using both spec_info and spec_surprise.
 // This function is just for human convenience as shorthand for perstate_ei setting M1=FULL_MASK
 {
-	// assert this x1 is valid
 	assert( is_valid_m1( x1, FULL_MASK ) );
 	
 	return perstate_ei( FULL_MASK, x1, FULL_MASK );	
