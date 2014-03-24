@@ -191,6 +191,7 @@ vector<int> t_consciousness::external_nodes_with_wires_into_node( unsigned int n
 	return z;
 }
 
+
 vector<int> t_consciousness::states_to_attempt__WIRES( unsigned int node_index, int mu0, const unsigned int* restrict part_nodes, unsigned int numnodes )
 // returns a vector of the x0 states to run for node_index in part, with partstate mu0
 {

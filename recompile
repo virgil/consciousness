@@ -41,7 +41,7 @@ fi
 
 # compile consciousness
 echo "- compiling $output_filename..."
-g++ consc/helpers.cpp consc/t_state.cpp consc/t_consc.cpp consc/t_latticeatom.cpp consc/t_partition.cpp consc/t_subset.cpp consc/PartitionEnumerator.cpp consc/main.cpp $libs $extra_args -o $output_filename
+g++ consc/helpers.cpp consc/t_state.cpp consc/t_consc.cpp consc/t_partition.cpp consc/t_subset.cpp consc/PartitionEnumerator.cpp consc/main.cpp $libs $extra_args -o $output_filename
 
 
 
@@ -49,7 +49,7 @@ if [[ "$1" == "-g"  || "$2" == "-g" ]]
 then
 	# compile the program that generates the partitions on the fly
 	echo "- compiling gen_partitions..."
-	g++ gen_partitions.cpp consc/t_state.cpp consc/helpers.cpp consc/t_consc.cpp consc/t_latticeatom.cpp consc/t_subset.cpp consc/t_partition.cpp consc/PartitionEnumerator.cpp $libs $extra_args -o gen_partitions
+	g++ gen_partitions.cpp consc/t_state.cpp consc/helpers.cpp consc/t_consc.cpp consc/t_subset.cpp consc/t_partition.cpp consc/PartitionEnumerator.cpp $libs $extra_args -o gen_partitions
 fi
 
 echo "Done!"

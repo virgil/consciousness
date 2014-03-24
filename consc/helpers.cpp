@@ -213,69 +213,6 @@ int next_combination( unsigned int comb[], const unsigned int k, const unsigned 
 
 
 
-LatticeAtoms lattice_nodes_below( const t_partition& restrict P, const bool P_timestep )
-// this function returns all of the nodes below the LatticeNode "{P_1, ... P_K}" for a given P
-{
-	///////////////////////////////////////////////////////////////////////////
-	// if this isn't true then there will will be NO lattice nodes beneath it
-	assert( 2 <= P.size() );
-
-	assert( P_timestep == 0 );
-	///////////////////////////////////////////////////////////////////////////
-	
-	
-	// we're going to have exactly P.size() of these.
-	LatticeAtoms z;
-	z.reserve( P.size() );
-	
-	// creates |P| nodes, each containing a SINGLE atom
-	for( int i=0; i<P.size(); i++ )
-	{
-		// atom_mask contains everything except for the i'th part
-		const unsigned int atom_mask = P.subset & (~P[i]);
-		
-		// make the atom
-		LatticeAtom new_atom( atom_mask, P_timestep );
-
-		// make the node, and push the atom onto it
-//		LatticeNode new_node;
-//		new_node.push_back( new_atom );		
-		
-		z.push_back( new_atom );
-	}
-	
-	assert( z.size() == P.size() );	
-/*	
-	// if there is an exclusion mask, add the mask of itself to every node
-	if( exclusion_mask )
-	{
-		// make an atom for the whole partition
-		LatticeAtom partition_atom( P.subset, Ptimestep );
-		
-		
-		foreach( LatticeNode this_node, z )
-		{
-			// if this isn't true something is amiss
-			assert( this_node.size() == 1 );
-			
-			if( exclusion_timestep )
-				this_node[0].X1mask |= exclusion_mask;
-			else
-				this_node[0].X0mask |= exclusion_mask;
-			
-			
-			this_node.push_back( partition_atom );
-			
-			// if this isn't true something is wrong
-			assert( this_node.size() == 2 );
-		}
-		
-	}
-*/
-	
-	assert( z.size() == P.size() );
-	return z;
-}
 
 unsigned int bin2dec(char* bin)
 // converts a string of binary characters into an unsigned integer

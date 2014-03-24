@@ -14,7 +14,6 @@
 #include <queue>
 #include <math.h>
 #include "t_partition.h"
-#include "t_latticeatom.h"
 #include <algorithm>
 #include <boost/foreach.hpp>
 #include <sstream>
@@ -61,14 +60,6 @@ const float FLT_NaN = numeric_limits<float>::quiet_NaN();
 const double DBL_MAX = numeric_limits<double>::max();
 const double DBL_MIN = numeric_limits<double>::min();
 
-
-//////////////////////////////////////////////////////////////////////////////////
-// Functions for calculating:
-// (1) total-holistic-integration
-// (2) holistic-integration, and
-// (3) integration
-// using the Partial Information Lattice
-//////////////////////////////////////////////////////////////////////////////////
 
 // returns the sign of the passed double
 int SIGN( const double a );

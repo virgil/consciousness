@@ -45,8 +45,6 @@ const unsigned short OUTPUT_PRECISION = 4;
 ////////////////////////////////////////////////////////////////
 //const string FLAG__MIP_METHOD = "ATOMIC";
 const string FLAG__MIP_METHOD = "TONONI";
-//const string FLAG__MIP_METHOD = "TONONI_PROD_M0";
-//const string FLAG__MIP_METHOD = "TONONI_PROD_M1";
 //const string FLAG__MIP_METHOD = "NONE";
 ////////////////////////////////////////////////////////////////
 
@@ -2560,41 +2558,6 @@ double t_consciousness::MIP_score( const t_partition& restrict P )
 		z = (double) P.size();
 	}
 		   
-	else if( FLAG__MIP_METHOD == "TONONI_PROD_M0" )
-	{
-		// for a MIP Z should be SMALL		
-		double help = this->bracket_ei( P );
-		unsigned int hurt = 1;
-		
-		// create the product of parts
-		for( int i=0; i<P.size(); i++ )
-			hurt *= P.size(i);
-		
-		z = (help / (double) hurt) * -1;
-	}
-
-	
-	
-	else if( FLAG__MIP_METHOD == "TONONI_PROD_M1" )
-	{
-		// for a MIP Z should be SMALL				
-		double help = this->bracket_ei( P );
-		double hurt = 1.0;
-		double temp = DBL_NONE;
-		
-		// create the product of parts
-		for( int i=0; i<P.size(); i++ ) {
-			
-			temp = H_M1( P[i] );
-			// if temp != 0.0, don't multiply.
-			
-			if( ! fequals(temp, 0.0 ) )
-				hurt *= temp;
-		}
-
-		z = (help/hurt) * -1;
-	}
-	
 
 	else { 
 		cerr << "Error. Did not know which MIP method you speak of -- '" << FLAG__MIP_METHOD << "'" << endl;
@@ -2603,10 +2566,7 @@ double t_consciousness::MIP_score( const t_partition& restrict P )
 	if( fequals(z, 0.0 ) )
 		z = 0.0;
 	
-//	assert( 0.0 <= z );
-	
-//	cerr << "Calculated a MIP score=" << z << endl;
-//	cerr.flush();
+	assert( 0.0 <= z );
 	
 	return z;
 }
@@ -3881,42 +3841,6 @@ double t_consciousness::H_M0_GIVEN_M1__WIRES( unsigned int part_mask )
 	// we're done with the nodes[] now.
 	delete [] nodes;
 
-/*	
-	////////////////////////////////////////////////////////////////////
-	// Creating the intersection matrix by normalizing by its sum
-	////////////////////////////////////////////////////////////////////
-	double bigsum = sum(prob_mu0_mu1, d*d);
-	for( int i=0; i<d*d; i++ )
-		prob_mu0_mu1[ i ] /= bigsum;
-	
-	////////////////////////////////////////////////////////////////////
-	// Go from p(mu0,mu1) -> p(mu0|mu1) by 
-	// dividing by p(mu1)
-	////////////////////////////////////////////////////////////////////
-	// make a pointer to the same location in memory.
-	double* prob_mu0_given_mu1 = prob_mu1_given_mu0;
-	prob_mu1_given_mu0 = NULL;		// null out the pointer
-
-	for( int mu1=0; mu1<d; mu1++ ) {
-
-//		if( mu1_instances[mu1] == 0 )
-//			continue;
-//		const double prob_mu1 = mu1_instances[mu1] / Dnumstates;
-		
-		const double prob_mu1 = sum( prob_mu0_mu1+(mu1*d), d );
-		if( fequals( prob_mu1, 0.0 ) )
-			continue;
-		
-		
-		for( int mu0=0; mu0<d; mu0++ ) {
-			prob_mu0_given_mu1[ (mu1*d)+mu0 ] = prob_mu0_mu1[(mu1*d)+mu0] / prob_mu1;
-		}
-
-	}
-
-	cout << "sum=" << sum(prob_mu0_given_mu1,d*d) << "\t\t #s1states=" << num_s1_states(part_mask) << endl;
-	ASSERT( fequals(sum(prob_mu0_given_mu1,d*d), num_s1_states(part_mask)) );
-*/
 	
 	free( prob_mu0_mu1 );
 	
@@ -4667,7 +4591,7 @@ int t_consciousness::save_to_file(string ofilename, bool perstate, bool bracketp
         t_psi_result s = this->bracketpsi();
 
 
-		tempfile << "bracket:" << "\tei=" << r.ei << "\tMIPscore=" << r.mip_score << "\t#MIPs=" << r.MIPs.size() << "\tPHIs=" << PHIs2str(r.PHIs, r.ei) << "\tMIPs=" << partitions2str(r.MIPs);
+		tempfile << "bracket:" << "\tei=" << r.ei << "\tMIPscore=" << r.mip_score << "\t#MIPs=" << r.MIPs.size() << "\tPHIs=" << PHIs2str(r.PHIs) << "\tMIPs=" << partitions2str(r.MIPs);
         
         t_partition P = r.MIPs[0];
         
