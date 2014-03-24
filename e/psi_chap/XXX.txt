@@ -1,0 +1,7 @@
+# a set of 3 simple XOR gates
+
+type=circuit
+0	=	1	X	2
+1	=	0	X	2
+2	=	0	X	1
+
