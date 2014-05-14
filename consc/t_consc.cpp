@@ -2565,8 +2565,9 @@ double t_consciousness::MIP_score( const t_partition& restrict P )
 	}
 	if( fequals(z, 0.0 ) )
 		z = 0.0;
-	
-	assert( 0.0 <= z );
+	    
+    if( FLAG__MIP_METHOD != "TONONI" )
+        assert( 0.0 <= z );
 	
 	return z;
 }
