@@ -5,8 +5,6 @@ This is the codebase for computing effective information (ei), the minimum infor
 
 --------
 
-<img src="http://dl.dropbox.com/u/3308162/glassware.jpg" align="right" alt="" border="0" title="glassware image" width="219" height="234">
-
 # Popular Reading
 1. [https://www.youtube.com/watch?v=OdtT0S0GNjE](Howto for developers)
 2.  [http://www.nytimes.com/2010/09/21/science/21consciousness.html?_r=2&pagewanted=all](New York Times - Sizing Up Consciousness by Its Bits)
@@ -22,7 +20,7 @@ This is the codebase for computing effective information (ei), the minimum infor
 4. [http://arxiv.org/abs/1401.0978](A Principled Infotheoretic φ-like Measure)
 
 
-# Relationship between IIT and other fields
+## Relationship between IIT and other fields
 1. [http://ntp.neuroscience.wisc.edu/faculty/fac-art/tononicon&anesth.pdf](Neuroscience and IIT)
 
 ## Satellite Papers
@@ -54,24 +52,10 @@ Computes the measures for the system specified in filename.txt
 
 
 
-# Some notes
+### Notes
 =======================
-
 The directory "e/" contains example systems to compute the phi/psi.  For example, to compute the measures for the system "transitions/3RN.txt", you'd do:
 
-$ ./consciousness e/transitions/3RN.txt
+   $ ./consciousness e/transitions/3RN.txt
 
------
-
-The directory 'balduzzi_python' contains the original python code from David Balduzzi to compute the phi in the 2008 paper, "Integrated Information in Discrete Dynamical Systems"
-
------
-
-The directory 'tests' is a series of simple programs that spit out system diagnostic information.  It's unlikely you'll ever need them.  You can safely ignore this directory.
-
------
-
-The directory 'pics' contains two pretty pictures for the Google Code site.  You can ignore this directory.
-
------
-
+The directory 'balduzzi_python' contains the original python code from David Balduzzi to compute the phi in the 2008 paper, "Integrated Information in Discrete Dynamical Systems".  The directory 'tests' is a series of simple programs that spit out system diagnostic information.  It's unlikely you'll ever need them.  You can safely ignore this directory.
