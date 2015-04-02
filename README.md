@@ -32,28 +32,19 @@ This is the codebase for computing effective information (ei), the minimum infor
 ------
 
 
-# Requirements
-===============
-1. The C++ BOOST library from http://boost.org -- particularly boost/foreach.hpp
-
-If on a mac, you can install these using 'macports' or 'homebrew'.
+## Requirements
+& The C++ BOOST library from http://boost.org -- particularly boost/foreach.hpp .  If on a mac, you can install these using 'macports' or 'homebrew'.
 
 
-# Compiling
-===============
+## Compiling
 Run the command 'recompile', which generates an executable 'consciousness'.  I.e.,
 
-$ ./recompile
-$ ./consciousness filename.txt
+   $ ./recompile
+   $ ./consciousness filename.txt
 
 Computes the measures for the system specified in filename.txt
 
-
-
-
-
 ### Notes
-=======================
 The directory "e/" contains example systems to compute the phi/psi.  For example, to compute the measures for the system "transitions/3RN.txt", you'd do:
 
    $ ./consciousness e/transitions/3RN.txt
