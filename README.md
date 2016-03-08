@@ -1,6 +1,6 @@
-This is the codebase for computing effective information (ei), the minimum information partition (MIP), integrated information (phi), and other measures related to the _Information Integration Theory_ of Consciousness (IITC).  This is code underlying my [http://thesis.library.caltech.edu/8041/](PhD thesis).  Aside from complexity work related to the [http://arxiv.org/abs/1401.0978](psi measure), it is *by far* the fastest implementation of [http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1000091](Balduzzi-Tononi-2008 phi).  The major restrictions about the code are:
+This is the codebase for computing effective information (ei), the minimum information partition (MIP), integrated information (phi), and other measures related to the _Information Integration Theory_ of Consciousness (IITC).  This is code underlying my [http://thesis.library.caltech.edu/8041/](PhD thesis).  It computes [psi measure](http://arxiv.org/abs/1401.0978) and is *by far* the fastest implementation of [Balduzzi-Tononi-2008 phi](http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1000091).  The major restrictions about the code are:
 
-* It only works for DETERMINISTIC networks.
+* It only works for networks of DETERMINISTIC, BINARY nodes.
 * It only works for networks with <= 32 nodes.
 
 --------
